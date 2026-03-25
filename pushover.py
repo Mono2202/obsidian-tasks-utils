@@ -1,15 +1,11 @@
-import dotenv
 import requests
-import os
 
 class Pushover:
     SEND_MESSAGE_ENDPOINT = "https://api.pushover.net/1/messages.json"
 
-    def __init__(self):
-        dotenv.load_dotenv()
-
-        self.api_token = os.getenv("PUSHOVER_API_TOKEN")
-        self.user_key = os.getenv("PUSHOVER_USER_KEY")
+    def __init__(self, api_token, user_key):
+        self.api_token = api_token
+        self.user_key = user_key
 
     def send_message(self, message, title):
         data = {
