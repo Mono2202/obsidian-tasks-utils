@@ -31,7 +31,16 @@ def reminder_worker():
             last_reminded_time = current_time_str
 
         time.sleep(FETCH_TASKS_INTERVAL)
-        
+
+@app.route('/today-tasks', methods=['GET'])
+def today_tasks_endpoint():
+    tasks = obsidian.fetch_today_tasks()
+    return jsonify({
+        "count": len(tasks),
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "tasks": tasks
+    })
+
 def main():
     daemon = threading.Thread(target=reminder_worker, daemon=True)
     daemon.start()
