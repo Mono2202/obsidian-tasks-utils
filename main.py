@@ -3,7 +3,7 @@ import dotenv
 import os
 import time
 from datetime import datetime
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from obsidian import Obsidian
 from pushover import Pushover
 
@@ -40,6 +40,32 @@ def today_tasks_endpoint():
         "date": datetime.now().strftime("%Y-%m-%d"),
         "tasks": tasks
     })
+
+@app.route('/add-task', methods=['GET'])
+def add_task_endpoint():
+    # Get the 'task' parameter from the URL
+    task_description = request.args.get('task')
+    
+    if not task_description:
+        return jsonify({"error": "No task description provided. Use ?task=your+task"}), 400
+
+    formatted_task = f"- [ ] #todo {task_description.strip()}"
+
+    try:
+        # Append to the file
+        with open(obsidian.inbox_file, "a", encoding="utf-8") as f:
+            f.write(f"{formatted_task}\n")
+        
+        print(f"✅ Task Added: {formatted_task}")
+        
+        return jsonify({
+            "status": "success",
+            "message": "Task appended to Inbox",
+            "formatted_line": formatted_task
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def main():
     daemon = threading.Thread(target=reminder_worker, daemon=True)

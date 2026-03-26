@@ -10,6 +10,7 @@ class Obsidian:
 
     def __init__(self, vault_path, ignore_dirs=None):
         self.vault_path = vault_path
+        self.inbox_file = os.path.join(vault_path, "Areas","GTD", "Inbox.md")
         self.ignore_dirs = ignore_dirs if ignore_dirs else ['.obsidian', '.git', '.trash']
 
     def fetch_today_tasks(self):
