@@ -62,7 +62,8 @@ class Obsidian:
         result = subprocess.run(
             ["cmd.exe", "/c", "obsidian", "daily:append", f"content={formatted_task}", "silent"],
             capture_output=True,
-            text=True
+            text=True,
+            cwd="/mnt/c"
         )
 
         if result.returncode != 0:
