@@ -79,7 +79,7 @@ def add_today_task_endpoint():
         return jsonify({"error": "Invalid time format. Use HH:MM"}), 400
 
     try:
-        formatted_task = obsidian.add_task_to_daily_note(task_description, time)
+        formatted_task = obsidian.add_task_to_today(task_description, time)
         print(f"✅ Today Task Added: {formatted_task}")
         return jsonify({
             "status": "success",

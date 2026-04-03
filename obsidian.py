@@ -1,6 +1,5 @@
 import os
 import re
-import subprocess
 from datetime import datetime
 
 class Obsidian:
@@ -11,7 +10,8 @@ class Obsidian:
 
     def __init__(self, vault_path, ignore_dirs=None):
         self.vault_path = vault_path
-        self.inbox_file = os.path.join(vault_path, "Areas","GTD", "Inbox.md")
+        self.inbox_file = os.path.join(vault_path, "Areas", "GTD", "Inbox.md")
+        self.imploding_tasks_file = os.path.join(vault_path, "Areas", "GTD", "IMPLODING TASKS.md")
         self.ignore_dirs = ignore_dirs if ignore_dirs else ['.obsidian', '.git', '.trash']
 
     def fetch_today_tasks(self):
@@ -53,20 +53,13 @@ class Obsidian:
 
         return today_tasks
 
-    def add_task_to_daily_note(self, task_description, time=None):
+    def add_task_to_today(self, task_description, time=None):
         today = datetime.now().strftime("%Y-%m-%d")
         formatted_task = f"- [ ] #todo {task_description.strip()} 📅{today}"
         if time:
             formatted_task += f" @{time}"
 
-        result = subprocess.run(
-            ["cmd.exe", "/c", "obsidian", "daily:append", f"content={formatted_task}", "silent"],
-            capture_output=True,
-            text=True,
-            cwd="/mnt/c"
-        )
-
-        if result.returncode != 0:
-            raise RuntimeError(result.stderr or result.stdout)
+        with open(self.imploding_tasks_file, "a", encoding="utf-8") as f:
+            f.write(f"{formatted_task}\n")
 
         return formatted_task
