@@ -60,7 +60,7 @@ class Obsidian:
             formatted_task += f" @{time}"
 
         result = subprocess.run(
-            ["obsidian", "daily:append", f"content={formatted_task}", "silent"],
+            ["cmd.exe", "/c", "obsidian", "daily:append", f"content={formatted_task}", "silent"],
             capture_output=True,
             text=True
         )
