@@ -1,5 +1,6 @@
 import os
 import re
+import subprocess
 from datetime import datetime
 
 class Obsidian:
@@ -51,3 +52,20 @@ class Obsidian:
                         print(f"Error reading {file_path}: {e}")
 
         return today_tasks
+
+    def add_task_to_daily_note(self, task_description, time=None):
+        today = datetime.now().strftime("%Y-%m-%d")
+        formatted_task = f"- [ ] #todo {task_description.strip()} 📅{today}"
+        if time:
+            formatted_task += f" @{time}"
+
+        result = subprocess.run(
+            ["obsidian", "daily:append", f"content={formatted_task}", "silent"],
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode != 0:
+            raise RuntimeError(result.stderr or result.stdout)
+
+        return formatted_task

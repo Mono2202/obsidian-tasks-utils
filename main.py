@@ -67,6 +67,28 @@ def add_task_endpoint():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/add-today-task', methods=['GET'])
+def add_today_task_endpoint():
+    task_description = request.args.get('task')
+    time = request.args.get('time')
+
+    if not task_description:
+        return jsonify({"error": "No task description provided. Use ?task=your+task"}), 400
+
+    if time and not __import__('re').match(r'^\d{2}:\d{2}$', time):
+        return jsonify({"error": "Invalid time format. Use HH:MM"}), 400
+
+    try:
+        formatted_task = obsidian.add_task_to_daily_note(task_description, time)
+        print(f"✅ Today Task Added: {formatted_task}")
+        return jsonify({
+            "status": "success",
+            "message": "Task added to today's daily note",
+            "formatted_line": formatted_task
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 def main():
     daemon = threading.Thread(target=reminder_worker, daemon=True)
     daemon.start()
