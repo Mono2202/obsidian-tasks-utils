@@ -6,7 +6,7 @@ class Obsidian:
     TASK_PATTERN = re.compile(r"^\s*-\s\[ \].*#todo", re.MULTILINE)
     DUE_DATE_PATTERN = re.compile(r"📅\s*(\d{4}-\d{2}-\d{2})")
     SCHED_DATE_PATTERN = re.compile(r"⏳\s*(\d{4}-\d{2}-\d{2})")
-    TIME_PATTERN = re.compile(r"@(\d{2}:\d{2})")
+    TIME_PATTERN = re.compile(r"(?:@(\d{2}:\d{2})|(\d{2}:\d{2})@)")
 
     def __init__(self, vault_path, ignore_dirs=None):
         self.vault_path = vault_path
