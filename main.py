@@ -4,7 +4,7 @@ import dotenv
 import os
 import time
 from datetime import datetime
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, send_from_directory
 from obsidian import Obsidian
 from pushover import Pushover
 
@@ -35,6 +35,10 @@ def reminder_worker():
             last_reminded_time = current_time_str
 
         time.sleep(FETCH_TASKS_INTERVAL)
+
+@app.route('/assets/<path:filename>')
+def assets(filename):
+    return send_from_directory('assets', filename)
 
 @app.route('/')
 def index():
