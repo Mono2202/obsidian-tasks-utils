@@ -128,11 +128,13 @@
       background: var(--border);
       color: var(--text-muted);
     }
-    .badge.time { background: #3a3060; color: #b8a9ff; }
-    .badge.file { background: var(--border); color: var(--text-muted); }
-    .badge.overdue { background: #4a1a1a; color: #ff7070; font-weight: 600; }
+    .badge.time { background: #3a3060; color: #b8a9ff; border: 1px solid #6a50c055; }
+    .badge.file { background: var(--border); color: var(--text-muted); border: 1px solid var(--border); }
+    .badge.overdue { background: #4a1a1a; color: #ff7070; border: 1px solid #ff707055; font-weight: 600; }
+    .badge.started { background: #0d2a3a; color: #5bc4f5; border: 1px solid #5bc4f555; font-weight: 600; }
 
     .task-item.overdue { border-color: #5a2020; }
+    .task-item.started { border-color: #1a4a6a; }
 
     .empty-state {
       text-align: center;
@@ -320,11 +322,13 @@
         }
 
         const isOverdue = (t) => (t.due && t.due < today) || (t.scheduled && t.scheduled < today);
+        const isStarted = (t) => !isOverdue(t) && t.start && t.start <= today;
         const overdueDate = (t) => (t.due && t.due < today ? t.due : t.scheduled) || '9999';
+        const rank = (t) => isOverdue(t) ? 0 : isStarted(t) ? 2 : 1;
         ids.sort((a, b) => {
-          const aOver = isOverdue(tasks[a]), bOver = isOverdue(tasks[b]);
-          if (aOver !== bOver) return bOver - aOver;
-          if (aOver) return overdueDate(tasks[a]).localeCompare(overdueDate(tasks[b]));
+          const ra = rank(tasks[a]), rb = rank(tasks[b]);
+          if (ra !== rb) return ra - rb;
+          if (ra === 0) return overdueDate(tasks[a]).localeCompare(overdueDate(tasks[b]));
           return 0;
         });
 
@@ -332,16 +336,19 @@
           const t = tasks[id];
           const text = cleanTaskText(t.task);
           const overdue = isOverdue(t);
+          const started = !overdue && t.start && t.start <= today;
           const overdueLabel = overdue ? (t.due && t.due < today ? t.due : t.scheduled) : null;
           const overdueBadge = overdue ? `<span class="badge overdue">Overdue · ${overdueLabel}</span>` : '';
+          const startedBadge = started ? `<span class="badge started">Started · ${t.start}</span>` : '';
           const timeBadge = t.time ? `<span class="badge time">@ ${t.time}</span>` : '';
           const fileBadge = `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
+          const cls = overdue ? ' overdue' : started ? ' started' : '';
           return `
-            <div class="task-item${overdue ? ' overdue' : ''}" id="task-${id}">
+            <div class="task-item${cls}" id="task-${id}">
               <input type="checkbox" class="task-checkbox" onchange="completeTask('${id}', this)" />
               <div class="task-body">
                 <div class="task-text">${escapeHtml(text)}</div>
-                <div class="task-meta">${overdueBadge}${timeBadge}${fileBadge}</div>
+                <div class="task-meta">${overdueBadge}${startedBadge}${timeBadge}${fileBadge}</div>
               </div>
             </div>`;
         }).join('');

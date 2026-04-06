@@ -28,10 +28,14 @@ def reminder_worker():
         current_time_str = now.strftime("%H:%M")
 
         if current_time_str != last_reminded_time:
+            today = datetime.now().strftime("%Y-%m-%d")
             tasks_store = obsidian.fetch_today_tasks()
             for task in tasks_store.values():
+                message = task["task"].replace("- [ ] #todo", "").strip()
                 if task["time"] == current_time_str:
-                    pushover.send_message(message=task["task"].replace("- [ ] #todo", ""), title="Task Reminder")
+                    pushover.send_message(message=message, title="Task Reminder")
+                elif current_time_str == "10:00" and task.get("start") == today:
+                    pushover.send_message(message=message, title="Task Starting Today")
             last_reminded_time = current_time_str
 
         time.sleep(FETCH_TASKS_INTERVAL)
