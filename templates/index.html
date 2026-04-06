@@ -129,6 +129,9 @@
     }
     .badge.time { background: #3a3060; color: #b8a9ff; }
     .badge.file { background: var(--border); }
+    .badge.overdue { background: #4a1a1a; color: #ff7070; font-weight: 600; }
+
+    .task-item.overdue { border-color: #5a2020; }
 
     .empty-state {
       text-align: center;
@@ -293,22 +296,36 @@
         const res = await fetch('/today-tasks');
         const data = await res.json();
         const tasks = data.tasks;
-        const ids = Object.keys(tasks);
+        const today = new Date().toISOString().slice(0, 10);
+        let ids = Object.keys(tasks);
         if (ids.length === 0) {
           list.innerHTML = '<div class="empty-state">No tasks for today.</div>';
           return;
         }
+
+        const isOverdue = (t) => (t.due && t.due < today) || (t.scheduled && t.scheduled < today);
+        const overdueDate = (t) => (t.due && t.due < today ? t.due : t.scheduled) || '9999';
+        ids.sort((a, b) => {
+          const aOver = isOverdue(tasks[a]), bOver = isOverdue(tasks[b]);
+          if (aOver !== bOver) return bOver - aOver;
+          if (aOver) return overdueDate(tasks[a]).localeCompare(overdueDate(tasks[b]));
+          return 0;
+        });
+
         list.innerHTML = ids.map(id => {
           const t = tasks[id];
           const text = cleanTaskText(t.task);
+          const overdue = isOverdue(t);
+          const overdueLabel = overdue ? (t.due && t.due < today ? t.due : t.scheduled) : null;
+          const overdueBadge = overdue ? `<span class="badge overdue">Overdue · ${overdueLabel}</span>` : '';
           const timeBadge = t.time ? `<span class="badge time">@ ${t.time}</span>` : '';
           const fileBadge = `<span class="badge file">${t.file}</span>`;
           return `
-            <div class="task-item" id="task-${id}">
+            <div class="task-item${overdue ? ' overdue' : ''}" id="task-${id}">
               <input type="checkbox" class="task-checkbox" onchange="completeTask('${id}', this)" />
               <div class="task-body">
                 <div class="task-text">${escapeHtml(text)}</div>
-                <div class="task-meta">${timeBadge}${fileBadge}</div>
+                <div class="task-meta">${overdueBadge}${timeBadge}${fileBadge}</div>
               </div>
             </div>`;
         }).join('');
