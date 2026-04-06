@@ -41,11 +41,14 @@ class Obsidian:
                                     is_sched_today_or_before = sched_date and sched_date <= today
 
                                     if is_due_today_or_before or is_sched_today_or_before:
+                                        rel_path = os.path.relpath(file_path, self.vault_path)
+                                        top_folder = rel_path.split(os.sep)[0]
                                         task_id = str(uuid.uuid4())
                                         today_tasks[task_id] = {
                                             "task": line.strip(),
                                             "file": file,
                                             "file_path": file_path,
+                                            "top_folder": top_folder,
                                             "due": due_date,
                                             "scheduled": sched_date,
                                             "time": task_time,

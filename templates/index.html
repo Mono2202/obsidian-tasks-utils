@@ -129,7 +129,7 @@
       color: var(--text-muted);
     }
     .badge.time { background: #3a3060; color: #b8a9ff; }
-    .badge.file { background: var(--border); }
+    .badge.file { background: var(--border); color: var(--text-muted); }
     .badge.overdue { background: #4a1a1a; color: #ff7070; font-weight: 600; }
 
     .task-item.overdue { border-color: #5a2020; }
@@ -280,6 +280,21 @@
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
 
+    const FOLDER_COLORS = {
+      'Projects':  '#ffca3a',
+      'Inbox':     '#ff595e',
+      'Meta':      '#ff924c',
+      'Resources': '#1982c4',
+      'Areas':     '#8ac926',
+      'Spam':      '#6a4c93',
+    };
+
+    function folderBadgeStyle(folder) {
+      const color = FOLDER_COLORS[folder];
+      if (!color) return '';
+      return `background:${color}22; color:${color}; border:1px solid ${color}55;`;
+    }
+
     function cleanTaskText(raw) {
       return raw
         .replace(/^-\s\[.\]\s*/, '')
@@ -320,7 +335,7 @@
           const overdueLabel = overdue ? (t.due && t.due < today ? t.due : t.scheduled) : null;
           const overdueBadge = overdue ? `<span class="badge overdue">Overdue · ${overdueLabel}</span>` : '';
           const timeBadge = t.time ? `<span class="badge time">@ ${t.time}</span>` : '';
-          const fileBadge = `<span class="badge file">${t.file}</span>`;
+          const fileBadge = `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
           return `
             <div class="task-item${overdue ? ' overdue' : ''}" id="task-${id}">
               <input type="checkbox" class="task-checkbox" onchange="completeTask('${id}', this)" />
