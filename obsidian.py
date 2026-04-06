@@ -8,6 +8,7 @@ class Obsidian:
     DUE_DATE_PATTERN = re.compile(r"📅\s*(\d{4}-\d{2}-\d{2})")
     SCHED_DATE_PATTERN = re.compile(r"⏳\s*(\d{4}-\d{2}-\d{2})")
     TIME_PATTERN = re.compile(r"(?:@(\d{2}:\d{2})|(\d{2}:\d{2})@)")
+    START_DATE_PATTERN = re.compile(r"🛫\s*(\d{4}-\d{2}-\d{2})")
 
     def __init__(self, vault_path, ignore_dirs=None):
         self.vault_path = vault_path
@@ -32,15 +33,18 @@ class Obsidian:
                                     due_match = self.DUE_DATE_PATTERN.search(line)
                                     sched_match = self.SCHED_DATE_PATTERN.search(line)
                                     time_match = self.TIME_PATTERN.search(line)
+                                    start_match = self.START_DATE_PATTERN.search(line)
 
                                     due_date = due_match.group(1) if due_match else None
                                     sched_date = sched_match.group(1) if sched_match else None
                                     task_time = time_match.group(1) if time_match else None
+                                    start_date = start_match.group(1) if start_match else None
 
                                     is_due_today_or_before = due_date and due_date <= today
                                     is_sched_today_or_before = sched_date and sched_date <= today
+                                    is_starting_today = start_date and start_date <= today
 
-                                    if is_due_today_or_before or is_sched_today_or_before:
+                                    if is_due_today_or_before or is_sched_today_or_before or is_starting_today:
                                         rel_path = os.path.relpath(file_path, self.vault_path)
                                         top_folder = rel_path.split(os.sep)[0]
                                         task_id = str(uuid.uuid4())
@@ -51,6 +55,7 @@ class Obsidian:
                                             "top_folder": top_folder,
                                             "due": due_date,
                                             "scheduled": sched_date,
+                                            "start": start_date,
                                             "time": task_time,
                                             "raw_line": line,
                                         }
