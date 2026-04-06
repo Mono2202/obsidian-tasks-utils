@@ -1,5 +1,6 @@
 import os
 import re
+import uuid
 from datetime import datetime
 
 class Obsidian:
@@ -16,7 +17,7 @@ class Obsidian:
 
     def fetch_today_tasks(self):
         today = datetime.now().strftime("%Y-%m-%d")
-        today_tasks = []
+        today_tasks = {}
 
         for root, dirs, files in os.walk(self.vault_path):
             dirs[:] = [d for d in dirs if d not in self.ignore_dirs]
@@ -40,18 +41,34 @@ class Obsidian:
                                     is_sched_today_or_before = sched_date and sched_date <= today
 
                                     if is_due_today_or_before or is_sched_today_or_before:
-                                        today_tasks.append({
+                                        task_id = str(uuid.uuid4())
+                                        today_tasks[task_id] = {
                                             "task": line.strip(),
                                             "file": file,
+                                            "file_path": file_path,
                                             "due": due_date,
                                             "scheduled": sched_date,
-                                            "time": task_time
-                                        })
+                                            "time": task_time,
+                                            "raw_line": line,
+                                        }
 
                     except Exception as e:
                         print(f"Error reading {file_path}: {e}")
 
         return today_tasks
+
+    def complete_task(self, file_path, raw_line):
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        if raw_line not in content:
+            raise ValueError("Task line not found in file")
+
+        completed_line = raw_line.replace("- [ ]", "- [x]", 1)
+        content = content.replace(raw_line, completed_line, 1)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
 
     def add_task_to_today(self, task_description, time=None):
         today = datetime.now().strftime("%Y-%m-%d")
