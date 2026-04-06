@@ -1,6 +1,6 @@
 // --- CONFIGURATION ---
 // Replace with your computer's local IP address
-const url = "http://monodesktop-wsl.taild6ff53.ts.net:13371/today-tasks"; 
+const url = "http://monodesktop.taild6ff53.ts.net:13371/today-tasks"; 
 
 let widget = new ListWidget();
 widget.backgroundColor = new Color("#1e1e1e");
@@ -8,7 +8,7 @@ widget.backgroundColor = new Color("#1e1e1e");
 try {
   let req = new Request(url);
   let json = await req.loadJSON();
-  let tasks = Object.values(json.tasks) as {task: string}[];
+  let tasks = Object.values(json.tasks);
 
   // Header
   let title = widget.addText("📅 Today's Tasks");
