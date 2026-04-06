@@ -72,9 +72,8 @@ class Obsidian:
 
     def add_task_to_today(self, task_description, time=None):
         today = datetime.now().strftime("%Y-%m-%d")
-        formatted_task = f"- [ ] #todo {task_description.strip()} 📅{today}"
-        if time:
-            formatted_task += f" @{time}"
+        time_part = f" @{time}" if time else ""
+        formatted_task = f"- [ ] #todo {task_description.strip()}{time_part} 📅 {today}"
 
         with open(self.imploding_tasks_file, "a", encoding="utf-8") as f:
             f.write(f"{formatted_task}\n")
