@@ -77,7 +77,8 @@ class Obsidian:
             logger.error(f"Task line not found in {file_path}: {raw_line.strip()}")
             raise ValueError("Task line not found in file")
 
-        completed_line = raw_line.replace("- [ ]", "- [x]", 1)
+        today = datetime.now().strftime("%Y-%m-%d")
+        completed_line = raw_line.rstrip("\n").replace("- [ ]", "- [x]", 1) + f" ✅ {today}\n"
         content = content.replace(raw_line, completed_line, 1)
 
         with open(file_path, "w", encoding="utf-8") as f:
