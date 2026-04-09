@@ -18,6 +18,10 @@ pushover = Pushover(api_token=os.getenv("PUSHOVER_API_TOKEN"), user_key=os.geten
 
 tasks_store = {}
 
+def _start_reminder_worker():
+    daemon = threading.Thread(target=reminder_worker, daemon=True)
+    daemon.start()
+
 def reminder_worker():
     global tasks_store
     print("Reminder background worker started...")
@@ -118,10 +122,9 @@ def add_today_task_endpoint():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def main():
-    daemon = threading.Thread(target=reminder_worker, daemon=True)
-    daemon.start()
+_start_reminder_worker()
 
+def main():
     app.run(host=os.getenv("HOST"), port=int(os.getenv("PORT")), debug=False)
 
 if __name__ == '__main__':
