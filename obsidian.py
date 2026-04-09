@@ -1,7 +1,8 @@
 import os
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -12,6 +13,14 @@ class Obsidian:
     SCHED_DATE_PATTERN = re.compile(r"⏳\s*(\d{4}-\d{2}-\d{2})")
     TIME_PATTERN = re.compile(r"(?:@(\d{2}:\d{2})|(\d{2}:\d{2})@)")
     START_DATE_PATTERN = re.compile(r"🛫\s*(\d{4}-\d{2}-\d{2})")
+    RECUR_PATTERN = re.compile(r"🔁\s*(every week|every 2 weeks|every 3 weeks|every month)")
+
+    RECUR_DELTAS = {
+        "every week":    lambda: timedelta(weeks=1),
+        "every 2 weeks": lambda: timedelta(weeks=2),
+        "every 3 weeks": lambda: timedelta(weeks=3),
+        "every month":   lambda: relativedelta(months=1),
+    }
 
     def __init__(self, vault_path, ignore_dirs=None):
         self.vault_path = vault_path
@@ -79,7 +88,35 @@ class Obsidian:
 
         today = datetime.now().strftime("%Y-%m-%d")
         completed_line = raw_line.rstrip("\n").replace("- [ ]", "- [x]", 1) + f" ✅ {today}\n"
-        content = content.replace(raw_line, completed_line, 1)
+
+        recur_match = self.RECUR_PATTERN.search(raw_line)
+        if recur_match:
+            recur_key = recur_match.group(1)
+            delta = self.RECUR_DELTAS[recur_key]()
+
+            # Find the scheduled or due date to advance
+            sched_match = self.SCHED_DATE_PATTERN.search(raw_line)
+            due_match = self.DUE_DATE_PATTERN.search(raw_line)
+            if sched_match:
+                old_date_str = sched_match.group(1)
+                old_date = datetime.strptime(old_date_str, "%Y-%m-%d")
+                new_date_str = (old_date + delta).strftime("%Y-%m-%d")
+                new_task_line = raw_line.replace(f"⏳ {old_date_str}", f"⏳ {new_date_str}\n", 1)
+            elif due_match:
+                old_date_str = due_match.group(1)
+                old_date = datetime.strptime(old_date_str, "%Y-%m-%d")
+                new_date_str = (old_date + delta).strftime("%Y-%m-%d")
+                new_task_line = raw_line.replace(f"📅 {old_date_str}", f"📅 {new_date_str}\n", 1)
+            else:
+                new_task_line = None
+
+            if new_task_line:
+                content = content.replace(raw_line, new_task_line + completed_line, 1)
+                logger.info(f"Recurring task rescheduled to {new_date_str}: {raw_line.strip()}")
+            else:
+                content = content.replace(raw_line, completed_line, 1)
+        else:
+            content = content.replace(raw_line, completed_line, 1)
 
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
