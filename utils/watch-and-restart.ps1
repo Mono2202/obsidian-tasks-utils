@@ -36,7 +36,7 @@ while ($true) {
     $pullOutput = & git -C $PROJECT_PATH pull origin main 2>&1
     Write-Host $pullOutput
 
-    if ($pullOutput -notmatch "Already up to date") {
+    if ($pullOutput -match "Updating") {
         Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Changes detected. Restarting server..." -ForegroundColor Cyan
         Stop-Server
         Start-Server
