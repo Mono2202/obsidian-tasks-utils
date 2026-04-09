@@ -137,6 +137,9 @@
     .badge.started { background: #0d2a3a; color: #5bc4f5; border: 1px solid #5bc4f555; font-weight: 600; }
     .badge.context { background: #1a2e1a; color: #6dbf6d; border: 1px solid #6dbf6d55; }
 
+    .task-text a { color: var(--accent); text-decoration: none; }
+    .task-text a:hover { text-decoration: underline; }
+
     .task-item.overdue { border-color: #5a2020; }
     .task-item.started { border-color: #1a4a6a; }
 
@@ -413,7 +416,7 @@
             <div class="task-item${cls}" id="task-${id}">
               ${t.completable ? `<input type="checkbox" class="task-checkbox" onchange="completeTask('${id}', this)" />` : `<span class="task-checkbox" title="Unsupported recurrence"></span>`}
               <div class="task-body">
-                <div class="task-text">${escapeHtml(text)}</div>
+                <div class="task-text">${renderText(text)}</div>
                 <div class="task-meta">${overdueBadge}${startedBadge}${timeBadge}${fileBadge}</div>
               </div>
             </div>`;
@@ -503,6 +506,20 @@
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    function renderText(str) {
+      // Extract markdown links before escaping, then re-insert as <a> tags
+      const parts = [];
+      const linkRe = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
+      let last = 0, m;
+      while ((m = linkRe.exec(str)) !== null) {
+        parts.push(escapeHtml(str.slice(last, m.index)));
+        parts.push(`<a href="${escapeHtml(m[2])}" target="_blank" rel="noopener noreferrer">${escapeHtml(m[1])}</a>`);
+        last = m.index + m[0].length;
+      }
+      parts.push(escapeHtml(str.slice(last)));
+      return parts.join('');
+    }
+
     async function loadNextTasks() {
       const list = document.getElementById('next-tasks-list');
       list.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
@@ -524,7 +541,7 @@
           return `
             <div class="task-item" id="next-task-${id}">
               <div class="task-body">
-                <div class="task-text">${escapeHtml(text)}</div>
+                <div class="task-text">${renderText(text)}</div>
                 <div class="task-meta">${contextBadges}${fileBadge}</div>
               </div>
             </div>`;
@@ -555,7 +572,7 @@
           return `
             <div class="task-item" id="upcoming-task-${id}">
               <div class="task-body">
-                <div class="task-text">${escapeHtml(text)}</div>
+                <div class="task-text">${renderText(text)}</div>
                 <div class="task-meta">${dateBadge}${fileBadge}</div>
               </div>
             </div>`;
