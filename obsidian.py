@@ -9,6 +9,7 @@ logger = get_logger(__name__)
 
 class Obsidian:
     TASK_PATTERN = re.compile(r"^\s*-\s\[ \].*#todo", re.MULTILINE)
+    NEXT_TASK_PATTERN = re.compile(r"^\s*-\s\[ \].*#todo.*#next", re.MULTILINE)
     DUE_DATE_PATTERN = re.compile(r"📅\s*(\d{4}-\d{2}-\d{2})")
     SCHED_DATE_PATTERN = re.compile(r"⏳\s*(\d{4}-\d{2}-\d{2})")
     TIME_PATTERN = re.compile(r"(?:@(\d{2}:\d{2})|(\d{2}:\d{2})@)")
@@ -137,3 +138,79 @@ class Obsidian:
         logger.info(f"Task added to today: {formatted_task}")
 
         return formatted_task
+
+    def fetch_next_tasks(self):
+        next_tasks = {}
+
+        for root, dirs, files in os.walk(self.vault_path):
+            dirs[:] = [d for d in dirs if d not in self.ignore_dirs]
+            for file in files:
+                if file.endswith(".md"):
+                    file_path = os.path.join(root, file)
+                    try:
+                        with open(file_path, "r", encoding="utf-8") as f:
+                            for line in f.readlines():
+                                if self.NEXT_TASK_PATTERN.search(line):
+                                    rel_path = os.path.relpath(file_path, self.vault_path)
+                                    top_folder = rel_path.split(os.sep)[0]
+                                    task_id = str(uuid.uuid4())
+                                    next_tasks[task_id] = {
+                                        "task": line.strip(),
+                                        "file": file,
+                                        "file_path": file_path,
+                                        "top_folder": top_folder,
+                                        "raw_line": line,
+                                    }
+                    except Exception as e:
+                        logger.error(f"Error reading {file_path}: {e}")
+
+        logger.info(f"Fetched {len(next_tasks)} #next tasks from vault")
+        return next_tasks
+
+    def fetch_upcoming_tasks(self):
+        today = datetime.now()
+        today_str = today.strftime("%Y-%m-%d")
+        cutoff_str = (today + timedelta(days=30)).strftime("%Y-%m-%d")
+        upcoming_tasks = {}
+
+        for root, dirs, files in os.walk(self.vault_path):
+            dirs[:] = [d for d in dirs if d not in self.ignore_dirs]
+            for file in files:
+                if file.endswith(".md"):
+                    file_path = os.path.join(root, file)
+                    try:
+                        with open(file_path, "r", encoding="utf-8") as f:
+                            for line in f.readlines():
+                                if not self.TASK_PATTERN.search(line):
+                                    continue
+                                if self.ANY_RECUR_PATTERN.search(line):
+                                    continue
+
+                                due_match = self.DUE_DATE_PATTERN.search(line)
+                                sched_match = self.SCHED_DATE_PATTERN.search(line)
+                                due_date = due_match.group(1) if due_match else None
+                                sched_date = sched_match.group(1) if sched_match else None
+
+                                due_upcoming = due_date and today_str < due_date <= cutoff_str
+                                sched_upcoming = sched_date and today_str < sched_date <= cutoff_str
+
+                                if due_upcoming or sched_upcoming:
+                                    rel_path = os.path.relpath(file_path, self.vault_path)
+                                    top_folder = rel_path.split(os.sep)[0]
+                                    task_id = str(uuid.uuid4())
+                                    happens = due_date if due_upcoming else sched_date
+                                    upcoming_tasks[task_id] = {
+                                        "task": line.strip(),
+                                        "file": file,
+                                        "file_path": file_path,
+                                        "top_folder": top_folder,
+                                        "due": due_date,
+                                        "scheduled": sched_date,
+                                        "happens": happens,
+                                        "raw_line": line,
+                                    }
+                    except Exception as e:
+                        logger.error(f"Error reading {file_path}: {e}")
+
+        logger.info(f"Fetched {len(upcoming_tasks)} upcoming tasks from vault")
+        return upcoming_tasks

@@ -10,7 +10,9 @@ import reminder
 
 FETCH_TASKS_INTERVAL = 30
 
-app = Flask(__name__)
+app = Flask(__name__,
+            template_folder=os.path.join(os.path.dirname(__file__), 'frontend', 'templates'),
+            static_folder=os.path.join(os.path.dirname(__file__), 'frontend', 'static'))
 
 dotenv.load_dotenv()
 obsidian = Obsidian(vault_path=os.getenv("OBSIDIAN_VAULT_PATH"))
@@ -23,7 +25,7 @@ reminder.start(obsidian, pushover, tasks_store_ref={"store": tasks_store}, inter
 
 @app.route('/assets/<path:filename>')
 def assets(filename):
-    return send_from_directory('assets', filename)
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'frontend', 'assets'), filename)
 
 @app.route('/')
 def index():
@@ -102,6 +104,18 @@ def add_today_task_endpoint():
     except Exception as e:
         logger.error(f"Failed to add today task: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/upcoming-tasks', methods=['GET'])
+def upcoming_tasks_endpoint():
+    tasks = obsidian.fetch_upcoming_tasks()
+    serializable = {k: {f: v for f, v in task.items() if f != "raw_line" and f != "file_path"} for k, task in tasks.items()}
+    return jsonify({"count": len(tasks), "tasks": serializable})
+
+@app.route('/next-tasks', methods=['GET'])
+def next_tasks_endpoint():
+    tasks = obsidian.fetch_next_tasks()
+    serializable = {k: {f: v for f, v in task.items() if f != "raw_line" and f != "file_path"} for k, task in tasks.items()}
+    return jsonify({"count": len(tasks), "tasks": serializable})
 
 def main():
     app.run(host=os.getenv("HOST"), port=int(os.getenv("PORT")), debug=False)
