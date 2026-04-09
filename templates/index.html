@@ -49,7 +49,7 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 28px;
-      max-width: 720px;
+      max-width: 1200px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -71,7 +71,10 @@
     }
     .theme-toggle:hover { background: var(--input-bg); }
 
-    .main { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .main { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+    .tasks-row { display: flex; gap: 20px; align-items: flex-start; }
+    .tasks-row > .card { flex: 1; min-width: 0; }
 
     .card {
       background: var(--surface);
@@ -82,7 +85,7 @@
     }
 
     /* Tasks */
-    #tasks-list { display: flex; flex-direction: column; gap: 8px; }
+    #tasks-list, #next-tasks-list { display: flex; flex-direction: column; gap: 8px; }
 
     .task-item {
       display: flex;
@@ -132,6 +135,7 @@
     .badge.file { background: var(--border); color: var(--text-muted); border: 1px solid var(--border); }
     .badge.overdue { background: #4a1a1a; color: #ff7070; border: 1px solid #ff707055; font-weight: 600; }
     .badge.started { background: #0d2a3a; color: #5bc4f5; border: 1px solid #5bc4f555; font-weight: 600; }
+    .badge.context { background: #1a2e1a; color: #6dbf6d; border: 1px solid #6dbf6d55; }
 
     .task-item.overdue { border-color: #5a2020; }
     .task-item.started { border-color: #1a4a6a; }
@@ -233,13 +237,24 @@
   </header>
 
   <div class="main">
-    <!-- Today's Tasks -->
-    <div class="card">
-      <div class="tasks-header">
-        <h2>Today</h2>
-        <button class="refresh-btn" onclick="loadTasks()">Refresh</button>
+    <div class="tasks-row">
+      <!-- Today's Tasks -->
+      <div class="card">
+        <div class="tasks-header">
+          <h2>Today</h2>
+          <button class="refresh-btn" onclick="loadTasks()">Refresh</button>
+        </div>
+        <div id="tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
       </div>
-      <div id="tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+
+      <!-- Next Tasks -->
+      <div class="card">
+        <div class="tasks-header">
+          <h2>Next</h2>
+          <button class="refresh-btn" onclick="loadNextTasks()">Refresh</button>
+        </div>
+        <div id="next-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+      </div>
     </div>
 
     <!-- Add to Inbox -->
@@ -300,11 +315,19 @@
     function cleanTaskText(raw) {
       return raw
         .replace(/^-\s\[.\]\s*/, '')
-        .replace(/#todo\s*/, '')
+        .replace(/#[^\s]+\s*/g, '')
         .replace(/📅\s*\d{4}-\d{2}-\d{2}/, '')
         .replace(/⏳\s*\d{4}-\d{2}-\d{2}/, '')
+        .replace(/🛫\s*\d{4}-\d{2}-\d{2}/, '')
+        .replace(/✅\s*\d{4}-\d{2}-\d{2}/, '')
+        .replace(/🔁[^📅⏳🛫✅]*/g, '')
+        .replace(/⏫|🔼|🔽/, '')
         .replace(/@\d{2}:\d{2}/, '')
         .trim();
+    }
+
+    function extractContextTags(raw) {
+      return [...raw.matchAll(/#context\/\S+/g)].map(m => m[0].replace('#context/', ''));
     }
 
     async function loadTasks() {
@@ -437,7 +460,39 @@
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    async function loadNextTasks() {
+      const list = document.getElementById('next-tasks-list');
+      list.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
+      try {
+        const res = await fetch('/next-tasks');
+        const data = await res.json();
+        const tasks = data.tasks;
+        const ids = Object.keys(tasks);
+        if (ids.length === 0) {
+          list.innerHTML = '<div class="empty-state">No #next tasks.</div>';
+          return;
+        }
+        list.innerHTML = ids.map(id => {
+          const t = tasks[id];
+          const text = cleanTaskText(t.task);
+          const contextTags = extractContextTags(t.task);
+          const contextBadges = contextTags.map(tag => `<span class="badge context">${escapeHtml(tag)}</span>`).join('');
+          const fileBadge = `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
+          return `
+            <div class="task-item" id="next-task-${id}">
+              <div class="task-body">
+                <div class="task-text">${escapeHtml(text)}</div>
+                <div class="task-meta">${contextBadges}${fileBadge}</div>
+              </div>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        list.innerHTML = `<div class="empty-state" style="color:var(--danger)">Failed to load tasks.</div>`;
+      }
+    }
+
     loadTasks();
+    loadNextTasks();
   </script>
 </body>
 </html>

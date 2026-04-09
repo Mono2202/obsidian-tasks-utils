@@ -9,6 +9,7 @@ logger = get_logger(__name__)
 
 class Obsidian:
     TASK_PATTERN = re.compile(r"^\s*-\s\[ \].*#todo", re.MULTILINE)
+    NEXT_TASK_PATTERN = re.compile(r"^\s*-\s\[ \].*#todo.*#next", re.MULTILINE)
     DUE_DATE_PATTERN = re.compile(r"📅\s*(\d{4}-\d{2}-\d{2})")
     SCHED_DATE_PATTERN = re.compile(r"⏳\s*(\d{4}-\d{2}-\d{2})")
     TIME_PATTERN = re.compile(r"(?:@(\d{2}:\d{2})|(\d{2}:\d{2})@)")
@@ -137,3 +138,31 @@ class Obsidian:
         logger.info(f"Task added to today: {formatted_task}")
 
         return formatted_task
+
+    def fetch_next_tasks(self):
+        next_tasks = {}
+
+        for root, dirs, files in os.walk(self.vault_path):
+            dirs[:] = [d for d in dirs if d not in self.ignore_dirs]
+            for file in files:
+                if file.endswith(".md"):
+                    file_path = os.path.join(root, file)
+                    try:
+                        with open(file_path, "r", encoding="utf-8") as f:
+                            for line in f.readlines():
+                                if self.NEXT_TASK_PATTERN.search(line):
+                                    rel_path = os.path.relpath(file_path, self.vault_path)
+                                    top_folder = rel_path.split(os.sep)[0]
+                                    task_id = str(uuid.uuid4())
+                                    next_tasks[task_id] = {
+                                        "task": line.strip(),
+                                        "file": file,
+                                        "file_path": file_path,
+                                        "top_folder": top_folder,
+                                        "raw_line": line,
+                                    }
+                    except Exception as e:
+                        logger.error(f"Error reading {file_path}: {e}")
+
+        logger.info(f"Fetched {len(next_tasks)} #next tasks from vault")
+        return next_tasks

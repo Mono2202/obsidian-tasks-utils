@@ -103,6 +103,12 @@ def add_today_task_endpoint():
         logger.error(f"Failed to add today task: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/next-tasks', methods=['GET'])
+def next_tasks_endpoint():
+    tasks = obsidian.fetch_next_tasks()
+    serializable = {k: {f: v for f, v in task.items() if f != "raw_line" and f != "file_path"} for k, task in tasks.items()}
+    return jsonify({"count": len(tasks), "tasks": serializable})
+
 def main():
     app.run(host=os.getenv("HOST"), port=int(os.getenv("PORT")), debug=False)
 
