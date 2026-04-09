@@ -7,6 +7,7 @@ from datetime import datetime
 from flask import Flask, jsonify, request, render_template, send_from_directory
 from obsidian import Obsidian
 from pushover import Pushover
+from logger import get_logger
 
 FETCH_TASKS_INTERVAL = 30
 
@@ -16,6 +17,8 @@ dotenv.load_dotenv()
 obsidian = Obsidian(vault_path=os.getenv("OBSIDIAN_VAULT_PATH"))
 pushover = Pushover(api_token=os.getenv("PUSHOVER_API_TOKEN"), user_key=os.getenv("PUSHOVER_USER_KEY"))
 
+logger = get_logger(__name__)
+
 tasks_store = {}
 
 def _start_reminder_worker():
@@ -24,7 +27,7 @@ def _start_reminder_worker():
 
 def reminder_worker():
     global tasks_store
-    print("Reminder background worker started...")
+    logger.info("Reminder background worker started...")
     last_reminded_time = ""
 
     while True:
@@ -37,8 +40,10 @@ def reminder_worker():
             for task in tasks_store.values():
                 message = task["task"].replace("- [ ] #todo", "").strip()
                 if task["time"] == current_time_str:
+                    logger.info(f"Sending reminder: {message}")
                     pushover.send_message(message=message, title="Task Reminder")
                 elif current_time_str == "10:00" and task.get("start") == today:
+                    logger.info(f"Sending start notification: {message}")
                     pushover.send_message(message=message, title="Task Starting Today")
             last_reminded_time = current_time_str
 
@@ -56,6 +61,7 @@ def index():
 def today_tasks_endpoint():
     global tasks_store
     tasks_store = obsidian.fetch_today_tasks()
+    logger.info(f"Fetched {len(tasks_store)} tasks for today")
     serializable = {k: {f: v for f, v in task.items() if f != "raw_line" and f != "file_path"} for k, task in tasks_store.items()}
     return jsonify({
         "count": len(tasks_store),
@@ -72,8 +78,10 @@ def complete_task_endpoint(task_id):
     try:
         obsidian.complete_task(task["file_path"], task["raw_line"])
         del tasks_store[task_id]
+        logger.info(f"Task completed: {task['task']}")
         return jsonify({"status": "success", "message": "Task marked as done"}), 200
     except Exception as e:
+        logger.error(f"Failed to complete task {task_id}: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/add-task', methods=['GET'])
@@ -89,8 +97,7 @@ def add_task_endpoint():
         with open(obsidian.inbox_file, "a", encoding="utf-8") as f:
             f.write(f"{formatted_task}\n")
 
-        print(f"✅ Task Added: {formatted_task}")
-
+        logger.info(f"Task added to Inbox: {formatted_task}")
         return jsonify({
             "status": "success",
             "message": "Task appended to Inbox",
@@ -98,6 +105,7 @@ def add_task_endpoint():
         }), 200
 
     except Exception as e:
+        logger.error(f"Failed to add inbox task: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/add-today-task', methods=['GET'])
@@ -113,13 +121,14 @@ def add_today_task_endpoint():
 
     try:
         formatted_task = obsidian.add_task_to_today(task_description, task_time)
-        print(f"✅ Today Task Added: {formatted_task}")
+        logger.info(f"Task added to today: {formatted_task}")
         return jsonify({
             "status": "success",
             "message": "Task added to today's daily note",
             "formatted_line": formatted_task
         }), 200
     except Exception as e:
+        logger.error(f"Failed to add today task: {e}")
         return jsonify({"error": str(e)}), 500
 
 _start_reminder_worker()
