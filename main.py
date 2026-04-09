@@ -10,7 +10,9 @@ import reminder
 
 FETCH_TASKS_INTERVAL = 30
 
-app = Flask(__name__)
+app = Flask(__name__,
+            template_folder=os.path.join(os.path.dirname(__file__), 'frontend', 'templates'),
+            static_folder=os.path.join(os.path.dirname(__file__), 'frontend', 'static'))
 
 dotenv.load_dotenv()
 obsidian = Obsidian(vault_path=os.getenv("OBSIDIAN_VAULT_PATH"))
@@ -23,7 +25,7 @@ reminder.start(obsidian, pushover, tasks_store_ref={"store": tasks_store}, inter
 
 @app.route('/assets/<path:filename>')
 def assets(filename):
-    return send_from_directory('assets', filename)
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'frontend', 'assets'), filename)
 
 @app.route('/')
 def index():
