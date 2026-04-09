@@ -247,5 +247,6 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
 .tab-panel.active { display: flex; }
 
 @media (max-width: 640px) {
-  .tasks-row { flex-direction: column; }
+  .planning-row { flex-direction: column; }
+  .planning-row > .card { width: 100%; }
 }
