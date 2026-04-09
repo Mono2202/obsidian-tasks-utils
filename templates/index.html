@@ -257,38 +257,42 @@
       </div>
     </div>
 
-    <!-- Upcoming Tasks -->
-    <div class="card">
-      <div class="tasks-header">
-        <h2>Upcoming <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(next 30 days)</span></h2>
-        <button class="refresh-btn" onclick="loadUpcomingTasks()">Refresh</button>
+    <div class="tasks-row">
+      <div style="display:flex;flex-direction:column;gap:20px;flex:1;min-width:0;">
+        <!-- Add to Inbox -->
+        <div class="card">
+          <h2>Add to Inbox</h2>
+          <form id="inbox-form" onsubmit="submitInbox(event)">
+            <div class="form-row">
+              <input type="text" id="inbox-task" placeholder="Task description..." required />
+              <button type="submit">Add</button>
+            </div>
+            <div class="feedback" id="inbox-feedback"></div>
+          </form>
+        </div>
+
+        <!-- Add to Today -->
+        <div class="card">
+          <h2>Add to Today</h2>
+          <form id="today-form" onsubmit="submitToday(event)">
+            <div class="form-row">
+              <input type="text" id="today-task" placeholder="Task description..." required />
+              <input type="time" id="today-time" />
+              <button type="submit">Add</button>
+            </div>
+            <div class="feedback" id="today-feedback"></div>
+          </form>
+        </div>
       </div>
-      <div id="upcoming-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
-    </div>
 
-    <!-- Add to Inbox -->
-    <div class="card">
-      <h2>Add to Inbox</h2>
-      <form id="inbox-form" onsubmit="submitInbox(event)">
-        <div class="form-row">
-          <input type="text" id="inbox-task" placeholder="Task description..." required />
-          <button type="submit">Add</button>
+      <!-- Upcoming Tasks -->
+      <div class="card" style="flex:2;min-width:0;">
+        <div class="tasks-header">
+          <h2>Upcoming <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(next 30 days)</span></h2>
+          <button class="refresh-btn" onclick="loadUpcomingTasks()">Refresh</button>
         </div>
-        <div class="feedback" id="inbox-feedback"></div>
-      </form>
-    </div>
-
-    <!-- Add to Today -->
-    <div class="card">
-      <h2>Add to Today</h2>
-      <form id="today-form" onsubmit="submitToday(event)">
-        <div class="form-row">
-          <input type="text" id="today-task" placeholder="Task description..." required />
-          <input type="time" id="today-time" />
-          <button type="submit">Add</button>
-        </div>
-        <div class="feedback" id="today-feedback"></div>
-      </form>
+        <div id="upcoming-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+      </div>
     </div>
   </div>
 
