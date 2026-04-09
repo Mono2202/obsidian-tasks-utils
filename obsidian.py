@@ -2,6 +2,9 @@ import os
 import re
 import uuid
 from datetime import datetime
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 class Obsidian:
     TASK_PATTERN = re.compile(r"^\s*-\s\[ \].*#todo", re.MULTILINE)
@@ -61,8 +64,9 @@ class Obsidian:
                                         }
 
                     except Exception as e:
-                        print(f"Error reading {file_path}: {e}")
+                        logger.error(f"Error reading {file_path}: {e}")
 
+        logger.info(f"Fetched {len(today_tasks)} tasks for today from vault")
         return today_tasks
 
     def complete_task(self, file_path, raw_line):
@@ -70,6 +74,7 @@ class Obsidian:
             content = f.read()
 
         if raw_line not in content:
+            logger.error(f"Task line not found in {file_path}: {raw_line.strip()}")
             raise ValueError("Task line not found in file")
 
         completed_line = raw_line.replace("- [ ]", "- [x]", 1)
@@ -77,6 +82,7 @@ class Obsidian:
 
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
+        logger.info(f"Task completed in {file_path}: {raw_line.strip()}")
 
     def add_task_to_today(self, task_description, time=None):
         today = datetime.now().strftime("%Y-%m-%d")
@@ -85,5 +91,6 @@ class Obsidian:
 
         with open(self.imploding_tasks_file, "a", encoding="utf-8") as f:
             f.write(f"{formatted_task}\n")
+        logger.info(f"Task added to today: {formatted_task}")
 
         return formatted_task

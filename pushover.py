@@ -1,4 +1,7 @@
 import requests
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 class Pushover:
     SEND_MESSAGE_ENDPOINT = "https://api.pushover.net/1/messages.json"
@@ -17,6 +20,6 @@ class Pushover:
 
         response = requests.post(self.SEND_MESSAGE_ENDPOINT, data=data)
         if response.status_code == 200:
-            print("Notification sent successfully!")
+            logger.info(f"Pushover notification sent: [{title}] {message}")
         else:
-            print(f"Error: {response.status_code}, {response.text}")
+            logger.error(f"Pushover notification failed: {response.status_code} {response.text}")
