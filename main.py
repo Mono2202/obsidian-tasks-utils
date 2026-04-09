@@ -1,13 +1,12 @@
 import re
-import threading
 import dotenv
 import os
-import time
 from datetime import datetime
 from flask import Flask, jsonify, request, render_template, send_from_directory
 from obsidian import Obsidian
 from pushover import Pushover
 from logger import get_logger
+import reminder
 
 FETCH_TASKS_INTERVAL = 30
 
@@ -20,34 +19,7 @@ pushover = Pushover(api_token=os.getenv("PUSHOVER_API_TOKEN"), user_key=os.geten
 logger = get_logger(__name__)
 
 tasks_store = {}
-
-def _start_reminder_worker():
-    daemon = threading.Thread(target=reminder_worker, daemon=True)
-    daemon.start()
-
-def reminder_worker():
-    global tasks_store
-    logger.info("Reminder background worker started...")
-    last_reminded_time = ""
-
-    while True:
-        now = datetime.now()
-        current_time_str = now.strftime("%H:%M")
-
-        if current_time_str != last_reminded_time:
-            today = datetime.now().strftime("%Y-%m-%d")
-            tasks_store = obsidian.fetch_today_tasks()
-            for task in tasks_store.values():
-                message = task["task"].replace("- [ ] #todo", "").strip()
-                if task["time"] == current_time_str:
-                    logger.info(f"Sending reminder: {message}")
-                    pushover.send_message(message=message, title="Task Reminder")
-                elif current_time_str == "10:00" and task.get("start") == today:
-                    logger.info(f"Sending start notification: {message}")
-                    pushover.send_message(message=message, title="Task Starting Today")
-            last_reminded_time = current_time_str
-
-        time.sleep(FETCH_TASKS_INTERVAL)
+reminder.start(obsidian, pushover, tasks_store_ref={"store": tasks_store}, interval=FETCH_TASKS_INTERVAL)
 
 @app.route('/assets/<path:filename>')
 def assets(filename):
@@ -130,8 +102,6 @@ def add_today_task_endpoint():
     except Exception as e:
         logger.error(f"Failed to add today task: {e}")
         return jsonify({"error": str(e)}), 500
-
-_start_reminder_worker()
 
 def main():
     app.run(host=os.getenv("HOST"), port=int(os.getenv("PORT")), debug=False)
