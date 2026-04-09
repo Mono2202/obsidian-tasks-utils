@@ -14,6 +14,7 @@ class Obsidian:
     TIME_PATTERN = re.compile(r"(?:@(\d{2}:\d{2})|(\d{2}:\d{2})@)")
     START_DATE_PATTERN = re.compile(r"🛫\s*(\d{4}-\d{2}-\d{2})")
     RECUR_PATTERN = re.compile(r"🔁\s*(every week|every 2 weeks|every 3 weeks|every month)")
+    ANY_RECUR_PATTERN = re.compile(r"🔁")
 
     RECUR_DELTAS = {
         "every week":    lambda: timedelta(weeks=1),
@@ -60,6 +61,9 @@ class Obsidian:
                                         rel_path = os.path.relpath(file_path, self.vault_path)
                                         top_folder = rel_path.split(os.sep)[0]
                                         task_id = str(uuid.uuid4())
+                                        has_recur = self.ANY_RECUR_PATTERN.search(line)
+                                        has_supported_recur = self.RECUR_PATTERN.search(line)
+                                        completable = not has_recur or bool(has_supported_recur)
                                         today_tasks[task_id] = {
                                             "task": line.strip(),
                                             "file": file,
@@ -70,6 +74,7 @@ class Obsidian:
                                             "start": start_date,
                                             "time": task_time,
                                             "raw_line": line,
+                                            "completable": completable,
                                         }
 
                     except Exception as e:

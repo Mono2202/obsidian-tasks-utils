@@ -345,7 +345,7 @@
           const cls = overdue ? ' overdue' : started ? ' started' : '';
           return `
             <div class="task-item${cls}" id="task-${id}">
-              <input type="checkbox" class="task-checkbox" onchange="completeTask('${id}', this)" />
+              ${t.completable ? `<input type="checkbox" class="task-checkbox" onchange="completeTask('${id}', this)" />` : `<span class="task-checkbox" title="Unsupported recurrence"></span>`}
               <div class="task-body">
                 <div class="task-text">${escapeHtml(text)}</div>
                 <div class="task-meta">${overdueBadge}${startedBadge}${timeBadge}${fileBadge}</div>
