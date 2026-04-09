@@ -85,7 +85,7 @@
     }
 
     /* Tasks */
-    #tasks-list, #next-tasks-list { display: flex; flex-direction: column; gap: 8px; }
+    #tasks-list, #next-tasks-list, #upcoming-tasks-list { display: flex; flex-direction: column; gap: 8px; }
 
     .task-item {
       display: flex;
@@ -255,6 +255,15 @@
         </div>
         <div id="next-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
       </div>
+    </div>
+
+    <!-- Upcoming Tasks -->
+    <div class="card">
+      <div class="tasks-header">
+        <h2>Upcoming <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(next 30 days)</span></h2>
+        <button class="refresh-btn" onclick="loadUpcomingTasks()">Refresh</button>
+      </div>
+      <div id="upcoming-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
     </div>
 
     <!-- Add to Inbox -->
@@ -491,8 +500,40 @@
       }
     }
 
+    async function loadUpcomingTasks() {
+      const list = document.getElementById('upcoming-tasks-list');
+      list.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
+      try {
+        const res = await fetch('/upcoming-tasks');
+        const data = await res.json();
+        const tasks = data.tasks;
+        let ids = Object.keys(tasks);
+        if (ids.length === 0) {
+          list.innerHTML = '<div class="empty-state">No upcoming tasks.</div>';
+          return;
+        }
+        ids.sort((a, b) => tasks[a].happens.localeCompare(tasks[b].happens));
+        list.innerHTML = ids.map(id => {
+          const t = tasks[id];
+          const text = cleanTaskText(t.task);
+          const dateBadge = `<span class="badge time">📅 ${t.happens}</span>`;
+          const fileBadge = `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
+          return `
+            <div class="task-item" id="upcoming-task-${id}">
+              <div class="task-body">
+                <div class="task-text">${escapeHtml(text)}</div>
+                <div class="task-meta">${dateBadge}${fileBadge}</div>
+              </div>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        list.innerHTML = `<div class="empty-state" style="color:var(--danger)">Failed to load tasks.</div>`;
+      }
+    }
+
     loadTasks();
     loadNextTasks();
+    loadUpcomingTasks();
   </script>
 </body>
 </html>
