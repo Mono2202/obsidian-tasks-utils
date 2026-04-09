@@ -1,5 +1,5 @@
 # --- CONFIGURATION ---
-$PROJECT_PATH = "C:\Users\mono\Projects\obsidian-tasks-utils"
+$PROJECT_PATH = "C:\Users\User\Documents\Projects\obsidian-tasks-utils"
 $CHECK_INTERVAL_SECONDS = 60
 $PORT = 13371
 # ---------------------
