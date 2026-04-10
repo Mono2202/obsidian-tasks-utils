@@ -285,9 +285,58 @@ async function loadUpcomingTasks() {
   }
 }
 
+// ── Habits Tab ────────────────────────────────────────────────────────────────
+
+async function loadHabits() {
+  const list = document.getElementById('habits-list');
+  list.innerHTML = loadingHtml();
+  try {
+    const res = await fetch('/habits');
+    const data = await res.json();
+    const habits = data.habits;
+    if (habits.length === 0) {
+      list.innerHTML = '<div class="empty-state">No habits found.</div>';
+      return;
+    }
+    list.innerHTML = habits.map(h => {
+      const doneClass = h.done_today ? ' done' : '';
+      return `
+        <div class="habit-item${doneClass}" id="habit-${CSS.escape(h.name)}">
+          <input type="checkbox" class="task-checkbox" ${h.done_today ? 'checked disabled' : `onchange="completeHabit('${h.name.replace(/'/g, "\\'")}', this)"`} />
+          <span class="habit-name${doneClass}">${escapeHtml(h.title)}</span>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<div class="empty-state" style="color:var(--danger)">Failed to load habits.</div>`;
+  }
+}
+
+async function completeHabit(name, checkbox) {
+  const item = document.getElementById(`habit-${CSS.escape(name)}`);
+  item.classList.add('completing');
+  try {
+    const res = await fetch(`/complete-habit/${encodeURIComponent(name)}`, { method: 'POST' });
+    if (res.ok) {
+      item.classList.remove('completing');
+      item.classList.add('done');
+      checkbox.disabled = true;
+      item.querySelector('.habit-name').classList.add('done');
+    } else {
+      const data = await res.json();
+      alert(data.error || 'Failed to complete habit.');
+      checkbox.checked = false;
+      item.classList.remove('completing');
+    }
+  } catch (e) {
+    checkbox.checked = false;
+    item.classList.remove('completing');
+  }
+}
+
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
 let planningLoaded = false;
+let habitsLoaded = false;
 
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -299,6 +348,10 @@ function switchTab(tab) {
     loadNextTasks();
     loadUpcomingTasks();
     planningLoaded = true;
+  }
+  if (tab === 'habits' && !habitsLoaded) {
+    loadHabits();
+    habitsLoaded = true;
   }
 }
 
