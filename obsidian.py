@@ -28,6 +28,7 @@ class Obsidian:
         self.vault_path = vault_path
         self.inbox_file = os.path.join(vault_path, "Areas", "GTD", "Inbox.md")
         self.imploding_tasks_file = os.path.join(vault_path, "Areas", "GTD", "IMPLODING TASKS.md")
+        self.habits_dir = os.path.join(vault_path, "Areas", "Habits")
         self.ignore_dirs = ignore_dirs if ignore_dirs else ['.obsidian', '.git', '.trash']
 
     def fetch_today_tasks(self):
@@ -214,3 +215,80 @@ class Obsidian:
 
         logger.info(f"Fetched {len(upcoming_tasks)} upcoming tasks from vault")
         return upcoming_tasks
+
+    def fetch_habits(self):
+        today = datetime.now().strftime("%Y-%m-%d")
+        habits = []
+
+        if not os.path.isdir(self.habits_dir):
+            return habits
+
+        for file in sorted(os.listdir(self.habits_dir)):
+            if not file.endswith(".md"):
+                continue
+            file_path = os.path.join(self.habits_dir, file)
+            name = file[:-3]
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                title_match = re.search(r"^title:\s*(.+)$", content, re.MULTILINE)
+                title = title_match.group(1).strip() if title_match else name
+                entries = re.findall(r"^\s*-\s+(\d{4}-\d{2}-\d{2})\s*$", content, re.MULTILINE)
+                done_today = today in entries
+                habits.append({"name": name, "title": title, "done_today": done_today, "entries": entries})
+            except Exception as e:
+                logger.error(f"Error reading habit {file_path}: {e}")
+
+        logger.info(f"Fetched {len(habits)} habits")
+        return habits
+
+    def complete_habit(self, name):
+        today = datetime.now().strftime("%Y-%m-%d")
+        file_path = os.path.join(self.habits_dir, f"{name}.md")
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        entries = re.findall(r"^\s*-\s+(\d{4}-\d{2}-\d{2})\s*$", content, re.MULTILINE)
+        if today in entries:
+            raise ValueError("Habit already completed today")
+
+        # Find the last date entry under the entries: key and insert after it,
+        # or insert on the next line after entries: if the list is empty.
+        last_entry_match = None
+        for m in re.finditer(r"^\s*-\s+\d{4}-\d{2}-\d{2}\s*$", content, re.MULTILINE):
+            last_entry_match = m
+
+        if last_entry_match:
+            insert_pos = last_entry_match.end()
+        else:
+            entries_match = re.search(r"^entries:.*$", content, re.MULTILINE)
+            if not entries_match:
+                raise ValueError("No 'entries:' key found in habit file")
+            insert_pos = entries_match.end()
+
+        content = content[:insert_pos] + f"\n  - {today}" + content[insert_pos:]
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        logger.info(f"Habit '{name}' completed for {today}")
+
+    def uncomplete_habit(self, name):
+        today = datetime.now().strftime("%Y-%m-%d")
+        file_path = os.path.join(self.habits_dir, f"{name}.md")
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        entries = re.findall(r"^\s*-\s+(\d{4}-\d{2}-\d{2})\s*$", content, re.MULTILINE)
+        if today not in entries:
+            raise ValueError("Habit not completed today")
+
+        content = re.sub(r"^\s*-\s+" + re.escape(today) + r"\s*\n?", "", content, count=1, flags=re.MULTILINE)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        logger.info(f"Habit '{name}' uncompleted for {today}")

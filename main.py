@@ -111,6 +111,33 @@ def upcoming_tasks_endpoint():
     serializable = {k: {f: v for f, v in task.items() if f != "raw_line" and f != "file_path"} for k, task in tasks.items()}
     return jsonify({"count": len(tasks), "tasks": serializable})
 
+@app.route('/habits', methods=['GET'])
+def habits_endpoint():
+    habits = obsidian.fetch_habits()
+    return jsonify({"habits": habits})
+
+@app.route('/complete-habit/<path:name>', methods=['POST'])
+def complete_habit_endpoint(name):
+    try:
+        obsidian.complete_habit(name)
+        return jsonify({"status": "success"}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 409
+    except Exception as e:
+        logger.error(f"Failed to complete habit '{name}': {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/uncomplete-habit/<path:name>', methods=['POST'])
+def uncomplete_habit_endpoint(name):
+    try:
+        obsidian.uncomplete_habit(name)
+        return jsonify({"status": "success"}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 409
+    except Exception as e:
+        logger.error(f"Failed to uncomplete habit '{name}': {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/next-tasks', methods=['GET'])
 def next_tasks_endpoint():
     tasks = obsidian.fetch_next_tasks()
