@@ -274,3 +274,21 @@ class Obsidian:
             f.write(content)
 
         logger.info(f"Habit '{name}' completed for {today}")
+
+    def uncomplete_habit(self, name):
+        today = datetime.now().strftime("%Y-%m-%d")
+        file_path = os.path.join(self.habits_dir, f"{name}.md")
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        entries = re.findall(r"^\s*-\s+(\d{4}-\d{2}-\d{2})\s*$", content, re.MULTILINE)
+        if today not in entries:
+            raise ValueError("Habit not completed today")
+
+        content = re.sub(r"^\s*-\s+" + re.escape(today) + r"\s*\n?", "", content, count=1, flags=re.MULTILINE)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+        logger.info(f"Habit '{name}' uncompleted for {today}")
