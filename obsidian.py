@@ -234,9 +234,11 @@ class Obsidian:
 
                 title_match = re.search(r"^title:\s*(.+)$", content, re.MULTILINE)
                 title = title_match.group(1).strip() if title_match else name
+                desc_match = re.search(r"^description:\s*(.+)$", content, re.MULTILINE)
+                description = desc_match.group(1).strip().strip('"\'') if desc_match else None
                 entries = re.findall(r"^\s*-\s+(\d{4}-\d{2}-\d{2})\s*$", content, re.MULTILINE)
                 done_today = today in entries
-                habits.append({"name": name, "title": title, "done_today": done_today, "entries": entries})
+                habits.append({"name": name, "title": title, "description": description, "done_today": done_today, "entries": entries})
             except Exception as e:
                 logger.error(f"Error reading habit {file_path}: {e}")
 

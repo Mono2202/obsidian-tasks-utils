@@ -263,9 +263,20 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
 .habit-item.done { opacity: 0.5; }
 .habit-item.completing { opacity: 0.4; pointer-events: none; }
 
+.habit-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .habit-name {
   font-size: 0.95rem;
-  flex: 1;
+}
+
+.habit-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
 .habit-name.done { text-decoration: line-through; color: var(--text-muted); }

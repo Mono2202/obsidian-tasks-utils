@@ -301,10 +301,14 @@ async function loadHabits() {
     list.innerHTML = habits.map(h => {
       const doneClass = h.done_today ? ' done' : '';
       const safeName = h.name.replace(/'/g, "\\'");
+      const descHtml = h.description ? `<span class="habit-desc">${escapeHtml(h.description)}</span>` : '';
       return `
         <div class="habit-item${doneClass}" id="habit-${CSS.escape(h.name)}">
           <input type="checkbox" class="task-checkbox" ${h.done_today ? 'checked' : ''} onchange="toggleHabit('${safeName}', this)" />
-          <span class="habit-name${doneClass}">${escapeHtml(h.title)}</span>
+          <div class="habit-body">
+            <span class="habit-name${doneClass}">${escapeHtml(h.title)}</span>
+            ${descHtml}
+          </div>
         </div>`;
     }).join('');
   } catch (e) {
