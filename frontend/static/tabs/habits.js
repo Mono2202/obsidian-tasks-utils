@@ -37,6 +37,7 @@ async function toggleHabit(name, checkbox) {
   try {
     const res = await fetch(url, { method: 'POST' });
     if (res.ok) {
+      if (completing) playCompletionFeedback();
       item.classList.remove('completing');
       item.classList.toggle('done', completing);
       item.querySelector('.habit-name').classList.toggle('done', completing);

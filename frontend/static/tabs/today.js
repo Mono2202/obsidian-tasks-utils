@@ -62,6 +62,7 @@ async function completeTask(id, checkbox) {
   try {
     const res = await fetch(`/complete-task/${id}`, { method: 'POST' });
     if (res.ok) {
+      playCompletionFeedback();
       item.style.transition = 'opacity 0.3s';
       item.style.opacity = '0';
       setTimeout(() => item.remove(), 300);

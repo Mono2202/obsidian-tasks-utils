@@ -93,6 +93,28 @@ function loadingHtml() {
   return '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
 }
 
+function playCompletionFeedback() {
+  if (navigator.vibrate) navigator.vibrate(40);
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const play = (freq, start, duration) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.15, ctx.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + duration);
+    };
+    play(523, 0, 0.15);
+    play(783, 0.12, 0.25);
+    setTimeout(() => ctx.close(), 500);
+  } catch (_) {}
+}
+
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
 let todayLoaded = false;
