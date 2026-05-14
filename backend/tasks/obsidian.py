@@ -289,3 +289,121 @@ class Obsidian:
             f.write(content)
 
         logger.info(f"Habit '{name}' uncompleted for {today}")
+
+    def _daily_note_path(self, date_str):
+        daily_folder = os.getenv('OBSIDIAN_DAILY_PATH', '')
+        if daily_folder:
+            return os.path.join(self.vault_path, daily_folder, f"{date_str}.md")
+        return os.path.join(self.vault_path, f"{date_str}.md")
+
+    def _parse_workout_section(self, content):
+        lines = content.split('\n')
+        in_section = False
+        exercises = []
+        pattern = re.compile(r'^- (.+?) :: (\d+)x(\d+)(?: @ (.+))?$')
+        for line in lines:
+            stripped = line.strip()
+            if stripped == '## Workout':
+                in_section = True
+                continue
+            if in_section:
+                if stripped.startswith('## ') and stripped != '## Workout':
+                    break
+                m = pattern.match(stripped)
+                if m:
+                    exercises.append({
+                        'name': m.group(1).strip(),
+                        'sets': int(m.group(2)),
+                        'reps': int(m.group(3)),
+                        'weight': m.group(4).strip() if m.group(4) else None,
+                    })
+        return exercises
+
+    def fetch_workout(self, date_str):
+        path = self._daily_note_path(date_str)
+        if not os.path.exists(path):
+            return []
+        with open(path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return self._parse_workout_section(content)
+
+    def add_exercise(self, date_str, name, sets, reps, weight=None):
+        path = self._daily_note_path(date_str)
+        weight_part = f" @ {weight}" if weight else ""
+        new_line = f"- {name} :: {sets}x{reps}{weight_part}\n"
+        exercise_re = re.compile(r'^- .+ :: \d+x\d+')
+
+        if not os.path.exists(path):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(f"# {date_str}\n\n## Workout\n{new_line}")
+            return
+
+        with open(path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        workout_idx = None
+        last_exercise_idx = None
+        in_workout = False
+        for i, line in enumerate(lines):
+            if line.strip() == '## Workout':
+                workout_idx = i
+                in_workout = True
+            elif in_workout:
+                if line.startswith('## '):
+                    break
+                if exercise_re.match(line.strip()):
+                    last_exercise_idx = i
+
+        if workout_idx is not None:
+            insert_at = (last_exercise_idx + 1) if last_exercise_idx is not None else (workout_idx + 1)
+            lines.insert(insert_at, new_line)
+        else:
+            if lines and not lines[-1].endswith('\n'):
+                lines[-1] += '\n'
+            lines.append(f"## Workout\n{new_line}")
+
+        with open(path, 'w', encoding='utf-8') as f:
+            f.writelines(lines)
+        logger.info(f"Exercise added to {date_str}: {new_line.strip()}")
+
+    def delete_exercise(self, date_str, index):
+        path = self._daily_note_path(date_str)
+        if not os.path.exists(path):
+            raise ValueError("Daily note not found")
+
+        with open(path, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        exercise_re = re.compile(r'^- .+ :: \d+x\d+')
+        in_workout = False
+        exercise_line_indices = []
+        for i, line in enumerate(lines):
+            if line.strip() == '## Workout':
+                in_workout = True
+            elif in_workout:
+                if line.startswith('## '):
+                    break
+                if exercise_re.match(line.strip()):
+                    exercise_line_indices.append(i)
+
+        if index >= len(exercise_line_indices):
+            raise ValueError("Exercise index out of range")
+
+        del lines[exercise_line_indices[index]]
+
+        with open(path, 'w', encoding='utf-8') as f:
+            f.writelines(lines)
+        logger.info(f"Exercise {index} deleted from {date_str}")
+
+    def fetch_workout_history(self, days=14):
+        from datetime import date, timedelta
+        history = []
+        today = date.today()
+        for i in range(1, days + 1):
+            d = today - timedelta(days=i)
+            date_str = d.strftime('%Y-%m-%d')
+            exercises = self.fetch_workout(date_str)
+            if exercises:
+                history.append({'date': date_str, 'exercises': exercises})
+        return history
