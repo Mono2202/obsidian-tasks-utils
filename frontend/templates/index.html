@@ -6,6 +6,8 @@
   <title>Mono Board</title>
   <link rel="icon" type="image/png" href="/assets/logo.png" />
   <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/tabs/habits.css" />
+  <link rel="stylesheet" href="/static/tabs/music.css" />
 </head>
 <body>
   <header>
@@ -26,108 +28,17 @@
       <button class="tab-btn" onclick="switchTab('music')"><img src="/assets/music.svg" alt="Music" /></button>
     </div>
 
-    <!-- Today Tab -->
-    <div id="tab-today" class="tab-panel active">
-      <div class="tasks-row">
-        <div class="card">
-          <div class="tasks-header">
-            <h2>Today</h2>
-            <button class="refresh-btn" onclick="loadTasks()">Refresh</button>
-          </div>
-          <div id="tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
-        </div>
-      </div>
-
-      <div class="tasks-row">
-        <div style="display:flex;flex-direction:column;gap:20px;flex:1;min-width:0;">
-          <div class="card">
-            <h2>Add to Inbox</h2>
-            <form id="inbox-form" onsubmit="submitInbox(event)">
-              <div class="form-row">
-                <input type="text" id="inbox-task" placeholder="Task description..." required />
-                <button type="submit">Add</button>
-              </div>
-              <div class="feedback" id="inbox-feedback"></div>
-            </form>
-          </div>
-
-          <div class="card">
-            <h2>Add to Today</h2>
-            <form id="today-form" onsubmit="submitToday(event)">
-              <div class="form-row">
-                <input type="text" id="today-task" placeholder="Task description..." required />
-                <input type="time" id="today-time" />
-                <button type="submit">Add</button>
-              </div>
-              <div class="feedback" id="today-feedback"></div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Habits Tab -->
-    <div id="tab-habits" class="tab-panel">
-      <div class="card">
-        <div class="tasks-header">
-          <h2>Habits</h2>
-          <button class="refresh-btn" onclick="loadHabits()">Refresh</button>
-        </div>
-        <div id="habits-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
-      </div>
-    </div>
-
-    <!-- Planning Tab -->
-    <div id="tab-planning" class="tab-panel">
-      <div class="tasks-row planning-row">
-        <div class="card">
-          <div class="tasks-header">
-            <h2>Next</h2>
-            <button class="refresh-btn" onclick="loadNextTasks()">Refresh</button>
-          </div>
-          <div id="next-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
-        </div>
-
-        <div class="card">
-          <div class="tasks-header">
-            <h2>Upcoming <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(next 30 days)</span></h2>
-            <button class="refresh-btn" onclick="loadUpcomingTasks()">Refresh</button>
-          </div>
-          <div id="upcoming-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Music Tab -->
-    <div id="tab-music" class="tab-panel">
-      <div class="music-container">
-        <div class="card music-card">
-          <div class="music-cover-wrap">
-            <img id="music-cover" class="music-cover" src="" alt="Album cover" />
-            <div id="music-cover-placeholder" class="music-cover-placeholder"></div>
-          </div>
-          <div id="music-track-title" class="music-track-title">Nothing playing</div>
-          <div id="music-track-meta" class="music-track-meta"></div>
-          <div class="music-rating-row">
-            <span class="music-label">Rating</span>
-            <div class="star-rating" id="star-rating"></div>
-            <span id="music-rating-text" class="music-rating-text">-/10</span>
-          </div>
-          <div style="width:100%">
-            <div class="music-label" style="margin-bottom:6px">Notes</div>
-            <textarea id="music-notes" class="music-notes" rows="5" placeholder="Your notes..."></textarea>
-          </div>
-          <button id="music-submit-btn" class="music-submit-btn" onclick="submitMusicReview()">Submit Review</button>
-          <div id="music-status" class="music-status"></div>
-          <div id="music-auth-prompt" class="music-auth-prompt" style="display:none">
-            <p>Connect your Spotify account to start reviewing tracks.</p>
-            <a href="/music/auth" class="music-auth-btn">Authorize Spotify</a>
-          </div>
-        </div>
-      </div>
-    </div>
+    {% include 'tabs/today.html' %}
+    {% include 'tabs/habits.html' %}
+    {% include 'tabs/planning.html' %}
+    {% include 'tabs/music.html' %}
   </div>
 
   <script src="/static/app.js"></script>
+  <script src="/static/tabs/today.js"></script>
+  <script src="/static/tabs/habits.js"></script>
+  <script src="/static/tabs/planning.js"></script>
+  <script src="/static/tabs/music.js"></script>
+  <script>loadTasks();</script>
 </body>
 </html>

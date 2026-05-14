@@ -8,7 +8,7 @@ from pathlib import Path
 
 import requests
 
-from spotify_client import SpotifyClient, TrackInfo, AlbumTrack, AlbumInfo
+from backend.music.spotify import SpotifyClient, TrackInfo, AlbumTrack, AlbumInfo
 
 _INVALID_CHARS = re.compile(r'[\\/:*?"<>|]')
 _RATING_CELL = re.compile(r'^\d+/10$')
@@ -152,8 +152,7 @@ class MusicWriter:
         path.write_text(_recalculate_rating(updated), encoding="utf-8")
 
     def _file_path(self, track: TrackInfo) -> Path:
-        album = _sanitize(track.album_name)
-        return self._root / f"{album}.md"
+        return self._root / f"{_sanitize(track.album_name)}.md"
 
     @staticmethod
     def _find_row(content: str, track_name: str) -> str | None:

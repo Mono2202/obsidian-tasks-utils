@@ -1,5 +1,5 @@
 import requests
-from logger import get_logger
+from backend.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -15,9 +15,8 @@ class Pushover:
             "token": self.api_token,
             "user": self.user_key,
             "message": message,
-            "title": title
+            "title": title,
         }
-
         response = requests.post(self.SEND_MESSAGE_ENDPOINT, data=data)
         if response.status_code == 200:
             logger.info(f"Pushover notification sent: [{title}] {message}")
