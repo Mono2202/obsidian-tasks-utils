@@ -20,22 +20,24 @@ async function loadWorkoutHistory() {
   }
 }
 
+function _exStats(ex) {
+  const weight = ex.weight ? ` <span class="ex-x">@</span> <span class="ex-weight">${escapeHtml(ex.weight)}</span>` : '';
+  return `<span class="ex-sets">${ex.sets}</span><span class="ex-x">&times;</span><span class="ex-reps">${ex.reps}</span>${weight}`;
+}
+
 function renderWorkoutList(exercises) {
   const el = document.getElementById('workout-list');
   if (!exercises.length) {
     el.innerHTML = '<div class="empty-state">No exercises logged yet.</div>';
     return;
   }
-  el.innerHTML = exercises.map((ex, i) => {
-    const weight = ex.weight ? ` <span class="workout-weight">@ ${escapeHtml(ex.weight)}</span>` : '';
-    return `<div class="workout-item">
+  el.innerHTML = exercises.map((ex, i) => `<div class="workout-item">
       <div class="workout-item-info">
         <span class="workout-item-name">${escapeHtml(ex.name)}</span>
-        <span class="workout-item-sets">${ex.sets}&times;${ex.reps}${weight}</span>
+        <span class="workout-item-sets">${_exStats(ex)}</span>
       </div>
       <button class="workout-delete-btn" onclick="deleteExercise(${i})" title="Remove">&times;</button>
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 
 function renderWorkoutHistory(history) {
@@ -47,13 +49,10 @@ function renderWorkoutHistory(history) {
   el.innerHTML = history.map(session => {
     const date = new Date(session.date + 'T00:00:00');
     const label = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    const rows = session.exercises.map(ex => {
-      const weight = ex.weight ? ` @ ${escapeHtml(ex.weight)}` : '';
-      return `<div class="workout-history-ex">
+    const rows = session.exercises.map(ex => `<div class="workout-history-ex">
         <span class="workout-history-ex-name">${escapeHtml(ex.name)}</span>
-        <span class="workout-history-ex-sets">${ex.sets}&times;${ex.reps}${weight}</span>
-      </div>`;
-    }).join('');
+        <span class="workout-history-ex-sets">${_exStats(ex)}</span>
+      </div>`).join('');
     return `<div class="workout-history-session">
       <div class="workout-history-date">${label}</div>
       <div class="workout-history-exercises">${rows}</div>

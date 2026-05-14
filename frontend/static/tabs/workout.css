@@ -44,8 +44,12 @@
 
 .workout-item-info { display: flex; flex-direction: column; gap: 2px; }
 .workout-item-name { font-size: 0.95rem; font-weight: 500; }
-.workout-item-sets { font-size: 0.85rem; color: var(--text-muted); }
-.workout-weight { color: var(--accent); }
+.workout-item-sets { font-size: 0.85rem; }
+
+.ex-sets   { color: var(--accent); }
+.ex-x      { color: var(--text-muted); margin: 0 1px; }
+.ex-reps   { color: #4db8c8; }
+.ex-weight { color: #a98ef5; }
 
 .workout-delete-btn {
   background: none;
