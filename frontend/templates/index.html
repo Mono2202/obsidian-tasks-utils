@@ -23,6 +23,7 @@
       <button class="tab-btn active" onclick="switchTab('today')"><img src="/assets/today.svg" alt="Today" /></button>
       <button class="tab-btn" onclick="switchTab('habits')"><img src="/assets/habits.svg" alt="Habits" /></button>
       <button class="tab-btn" onclick="switchTab('planning')"><img src="/assets/planning.svg" alt="Planning" /></button>
+      <button class="tab-btn" onclick="switchTab('music')"><img src="/assets/music.svg" alt="Music" /></button>
     </div>
 
     <!-- Today Tab -->
@@ -93,6 +94,35 @@
             <button class="refresh-btn" onclick="loadUpcomingTasks()">Refresh</button>
           </div>
           <div id="upcoming-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Music Tab -->
+    <div id="tab-music" class="tab-panel">
+      <div class="music-container">
+        <div class="card music-card">
+          <div class="music-cover-wrap">
+            <img id="music-cover" class="music-cover" src="" alt="Album cover" />
+            <div id="music-cover-placeholder" class="music-cover-placeholder"></div>
+          </div>
+          <div id="music-track-title" class="music-track-title">Nothing playing</div>
+          <div id="music-track-meta" class="music-track-meta"></div>
+          <div class="music-rating-row">
+            <span class="music-label">Rating</span>
+            <div class="star-rating" id="star-rating"></div>
+            <span id="music-rating-text" class="music-rating-text">-/10</span>
+          </div>
+          <div style="width:100%">
+            <div class="music-label" style="margin-bottom:6px">Notes</div>
+            <textarea id="music-notes" class="music-notes" rows="5" placeholder="Your notes..."></textarea>
+          </div>
+          <button id="music-submit-btn" class="music-submit-btn" onclick="submitMusicReview()">Submit Review</button>
+          <div id="music-status" class="music-status"></div>
+          <div id="music-auth-prompt" class="music-auth-prompt" style="display:none">
+            <p>Connect your Spotify account to start reviewing tracks.</p>
+            <a href="/music/auth" class="music-auth-btn">Authorize Spotify</a>
+          </div>
         </div>
       </div>
     </div>
