@@ -7,6 +7,14 @@
       </div>
       <div id="music-track-title" class="music-track-title">Nothing playing</div>
       <div id="music-track-meta" class="music-track-meta"></div>
+      <div class="music-mode-row">
+        <span class="music-label">Mode</span>
+        <label class="music-mode-toggle">
+          <input type="checkbox" id="music-album-mode" checked onchange="onMusicModeChange(this.checked)" />
+          <span class="music-mode-track"></span>
+        </label>
+        <span id="music-mode-label" class="music-mode-label">Album page</span>
+      </div>
       <div class="music-rating-row">
         <span class="music-label">Rating</span>
         <div class="star-rating" id="star-rating"></div>

@@ -47,7 +47,8 @@ def create_music_blueprint(spotify, music_writer, logger, spotify_error=None):
             return jsonify({"error": "Spotify not configured", "code": "not_configured"}), 503
         try:
             track = _track_from_args(request.args)
-            result = music_writer.get_existing_review(track)
+            album_mode = request.args.get('album_mode', 'true').lower() != 'false'
+            result = music_writer.get_existing_review(track, album_mode=album_mode)
             if not result:
                 return jsonify({"review": None})
             rating, notes = result
@@ -67,8 +68,10 @@ def create_music_blueprint(spotify, music_writer, logger, spotify_error=None):
             track = _track_from_args(data.get('track', {}))
             rating = int(data.get('rating', 0))
             notes = data.get('notes', '')
-            music_writer.upsert_review(track, rating, notes)
-            logger.info(f"Review saved: {track.track_name} ({rating}/10)")
+            album_mode = data.get('album_mode', True)
+            music_writer.upsert_review(track, rating, notes, album_mode=album_mode)
+            mode_label = "album" if album_mode else "song"
+            logger.info(f"Review saved [{mode_label} mode]: {track.track_name} ({rating}/10)")
             return jsonify({"status": "success"})
         except Exception as e:
             logger.error(f"Failed to submit review: {e}")

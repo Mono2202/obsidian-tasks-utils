@@ -1,6 +1,14 @@
 let _musicRating = 0;
 let _musicCurrentTrack = null;
 let _musicPollTimer = null;
+let _musicAlbumMode = localStorage.getItem('musicAlbumMode') !== 'false';
+
+function onMusicModeChange(checked) {
+  _musicAlbumMode = checked;
+  localStorage.setItem('musicAlbumMode', checked);
+  document.getElementById('music-mode-label').textContent = checked ? 'Album page' : 'Song page';
+  if (_musicCurrentTrack) _loadExistingReview(_musicCurrentTrack);
+}
 
 function _initStarRating() {
   const container = document.getElementById('star-rating');
@@ -65,7 +73,10 @@ async function _onMusicTrackChanged(track) {
   }
 
   _resetMusicForm();
+  await _loadExistingReview(track);
+}
 
+async function _loadExistingReview(track) {
   try {
     const params = new URLSearchParams({
       track_id: track.track_id,
@@ -76,6 +87,7 @@ async function _onMusicTrackChanged(track) {
       album_id: track.album_id,
       cover_url: track.cover_url,
       release_year: track.release_year,
+      album_mode: _musicAlbumMode,
     });
     const res = await fetch(`/music/get-review?${params}`);
     if (res.ok) {
@@ -84,6 +96,8 @@ async function _onMusicTrackChanged(track) {
         _musicRating = data.review.rating;
         _highlightStars(_musicRating, false);
         document.getElementById('music-notes').value = data.review.notes || '';
+      } else {
+        _resetMusicForm();
       }
     }
   } catch (_) {}
@@ -142,6 +156,7 @@ async function submitMusicReview() {
         track: _musicCurrentTrack,
         rating: _musicRating,
         notes: document.getElementById('music-notes').value,
+        album_mode: _musicAlbumMode,
       }),
     });
     const data = await res.json();
@@ -164,6 +179,10 @@ function _setMusicStatus(msg, isError) {
 
 function loadMusic() {
   _initStarRating();
+  // Restore persisted mode toggle
+  const toggle = document.getElementById('music-album-mode');
+  toggle.checked = _musicAlbumMode;
+  document.getElementById('music-mode-label').textContent = _musicAlbumMode ? 'Album page' : 'Song page';
   _pollMusicTrack();
   if (!_musicPollTimer) {
     _musicPollTimer = setInterval(_pollMusicTrack, 5000);

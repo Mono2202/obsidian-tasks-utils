@@ -36,14 +36,26 @@ class MusicWriter:
 
         self._spotify = spotify
 
-    def upsert_review(self, track: TrackInfo, rating: int, notes: str) -> None:
-        path = self._file_path(track)
-        if not path.exists():
-            self._create_file(path, track, rating, notes)
+    def upsert_review(self, track: TrackInfo, rating: int, notes: str, album_mode: bool = True) -> None:
+        if album_mode:
+            path = self._file_path(track)
+            if not path.exists():
+                self._create_file(path, track, rating, notes)
+            else:
+                self._update_file(path, track, rating, notes)
         else:
-            self._update_file(path, track, rating, notes)
+            path = self._song_file_path(track)
+            if not path.exists():
+                self._create_song_file(path, track, rating, notes)
+            else:
+                self._update_song_file(path, track, rating, notes)
 
-    def get_existing_review(self, track: TrackInfo) -> tuple[int, str] | None:
+    def get_existing_review(self, track: TrackInfo, album_mode: bool = True) -> tuple[int, str] | None:
+        if album_mode:
+            return self._get_album_review(track)
+        return self._get_song_review(track)
+
+    def _get_album_review(self, track: TrackInfo) -> tuple[int, str] | None:
         path = self._file_path(track)
         if not path.exists():
             return None
@@ -69,6 +81,22 @@ class MusicWriter:
             return None
 
         notes = notes_cell.replace("<br><br>", "\n")
+        return rating, notes
+
+    def _get_song_review(self, track: TrackInfo) -> tuple[int, str] | None:
+        path = self._song_file_path(track)
+        if not path.exists():
+            return None
+
+        content = path.read_text(encoding="utf-8")
+        rating_match = re.search(r'^rating:\s*(\d+)$', content, re.MULTILINE)
+        if not rating_match:
+            return None
+
+        rating = int(rating_match.group(1))
+        marker = "**Notes:**\n"
+        idx = content.find(marker)
+        notes = content[idx + len(marker):].strip() if idx != -1 else ""
         return rating, notes
 
     def _create_file(self, path: Path, track: TrackInfo, rating: int, notes: str) -> None:
@@ -150,6 +178,58 @@ class MusicWriter:
 
         updated = "\n".join(lines) + "\n"
         path.write_text(_recalculate_rating(updated), encoding="utf-8")
+
+    # ------------------------------------------------------------------ #
+    # Song mode (per-track files)
+    # ------------------------------------------------------------------ #
+
+    def _song_file_path(self, track: TrackInfo) -> Path:
+        songs_dir = self._root / "songs"
+        songs_dir.mkdir(exist_ok=True)
+        return songs_dir / f"{_sanitize(track.track_name)}.md"
+
+    def _create_song_file(self, path: Path, track: TrackInfo, rating: int, notes: str) -> None:
+        # Reuse existing cover asset if already downloaded for this album
+        cover_filename = f"{_sanitize(track.album_name)}.png"
+        cover_path = self._assets / cover_filename
+        if not cover_path.exists() and track.cover_url:
+            self._download_image(track.cover_url, cover_path)
+
+        content = self._build_song_content(track, cover_filename, date.today().isoformat(), rating, notes)
+        path.write_text(content, encoding="utf-8")
+
+    def _build_song_content(
+        self, track: TrackInfo, cover_filename: str, today: str, rating: int, notes: str
+    ) -> str:
+        lines = [
+            "---",
+            f"track: {track.track_name}",
+            f"artist: {track.artist}",
+            f"album: {track.album_name}",
+            f"release: {track.release_year}",
+            f"date: {today}",
+            f"rating: {rating}",
+            f"cover: {cover_filename}",
+            "---",
+            f"![[{cover_filename}|135]]",
+            "",
+            "**Notes:**",
+            notes,
+        ]
+        return "\n".join(lines) + "\n"
+
+    def _update_song_file(self, path: Path, track: TrackInfo, rating: int, notes: str) -> None:
+        content = path.read_text(encoding="utf-8")
+        content = re.sub(r'^rating:\s*\d+$', f'rating: {rating}', content, flags=re.MULTILINE)
+        marker = "**Notes:**\n"
+        idx = content.find(marker)
+        if idx != -1:
+            content = content[:idx + len(marker)] + notes + "\n"
+        path.write_text(content, encoding="utf-8")
+
+    # ------------------------------------------------------------------ #
+    # Album mode (per-album files)
+    # ------------------------------------------------------------------ #
 
     def _file_path(self, track: TrackInfo) -> Path:
         return self._root / f"{_sanitize(track.album_name)}.md"
