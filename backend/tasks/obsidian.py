@@ -70,6 +70,7 @@ class Obsidian:
                                             "task": line.strip(),
                                             "file": file,
                                             "file_path": file_path,
+                                            "rel_path": rel_path.replace(os.sep, '/'),
                                             "top_folder": top_folder,
                                             "due": due_date,
                                             "scheduled": sched_date,
@@ -156,6 +157,7 @@ class Obsidian:
                                         "task": line.strip(),
                                         "file": file,
                                         "file_path": file_path,
+                                        "rel_path": rel_path.replace(os.sep, '/'),
                                         "top_folder": top_folder,
                                         "raw_line": line,
                                     }
@@ -201,6 +203,7 @@ class Obsidian:
                                         "task": line.strip(),
                                         "file": file,
                                         "file_path": file_path,
+                                        "rel_path": rel_path.replace(os.sep, '/'),
                                         "top_folder": top_folder,
                                         "due": due_date,
                                         "scheduled": sched_date,

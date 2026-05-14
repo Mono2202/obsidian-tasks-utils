@@ -129,7 +129,8 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
   color: var(--text-muted);
 }
 .badge.time    { background: #3a3060; color: #b8a9ff; border: 1px solid #6a50c055; }
-.badge.file    { background: var(--border); color: var(--text-muted); border: 1px solid var(--border); }
+.badge.file    { background: var(--border); color: var(--text-muted); border: 1px solid var(--border); text-decoration: none; }
+a.badge.file:hover { color: var(--text); cursor: pointer; }
 .badge.overdue { background: #4a1a1a; color: #ff7070; border: 1px solid #ff707055; font-weight: 600; }
 .badge.started { background: #0d2a3a; color: #5bc4f5; border: 1px solid #5bc4f555; font-weight: 600; }
 .badge.context { background: #1a2e1a; color: #6dbf6d; border: 1px solid #6dbf6d55; }

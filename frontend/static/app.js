@@ -26,6 +26,11 @@ document.getElementById('date-label').textContent = new Date().toLocaleDateStrin
   { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
 );
 
+function obsidianFileHref(relPath) {
+  if (!relPath) return null;
+  return `obsidian://open?file=${encodeURIComponent(relPath)}`;
+}
+
 // ── Config ───────────────────────────────────────────────────────────────────
 
 const FOLDER_COLORS = {

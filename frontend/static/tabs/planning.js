@@ -15,7 +15,10 @@ async function loadNextTasks() {
       const text = cleanTaskText(t.task);
       const contextTags = extractContextTags(t.task);
       const contextBadges = contextTags.map(tag => `<span class="badge context">${escapeHtml(tag)}</span>`).join('');
-      const fileBadge = `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
+      const fileHref = obsidianFileHref(t.rel_path);
+      const fileBadge = fileHref
+        ? `<a href="${fileHref}" class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</a>`
+        : `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
       return `
         <div class="task-item" id="next-task-${id}">
           <div class="task-body">
@@ -46,7 +49,10 @@ async function loadUpcomingTasks() {
       const t = tasks[id];
       const text = cleanTaskText(t.task);
       const dateBadge = `<span class="badge time">📅 ${t.happens}</span>`;
-      const fileBadge = `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
+      const fileHref = obsidianFileHref(t.rel_path);
+      const fileBadge = fileHref
+        ? `<a href="${fileHref}" class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</a>`
+        : `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
       return `
         <div class="task-item" id="upcoming-task-${id}">
           <div class="task-body">
