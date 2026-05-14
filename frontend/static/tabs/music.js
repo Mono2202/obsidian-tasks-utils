@@ -180,10 +180,11 @@ function _setMusicStatus(msg, isError) {
 
 function loadMusic() {
   _initStarRating();
-  // Restore persisted mode toggle
   const toggle = document.getElementById('music-album-mode');
   toggle.checked = _musicAlbumMode;
   document.getElementById('music-mode-label').textContent = _musicAlbumMode ? 'Album page' : 'Song page';
+  document.getElementById('music-track-title').textContent = 'Loading…';
+  document.getElementById('music-track-meta').textContent = '';
   _pollMusicTrack();
   if (!_musicPollTimer) {
     _musicPollTimer = setInterval(_pollMusicTrack, 5000);

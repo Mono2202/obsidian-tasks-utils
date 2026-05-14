@@ -22,7 +22,7 @@
 
   <div class="main">
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('today')"><img src="/assets/today.svg" alt="Today" /></button>
+      <button class="tab-btn" onclick="switchTab('today')"><img src="/assets/today.svg" alt="Today" /></button>
       <button class="tab-btn" onclick="switchTab('habits')"><img src="/assets/habits.svg" alt="Habits" /></button>
       <button class="tab-btn" onclick="switchTab('planning')"><img src="/assets/planning.svg" alt="Planning" /></button>
       <button class="tab-btn" onclick="switchTab('music')"><img src="/assets/music.svg" alt="Music" /></button>
@@ -39,6 +39,6 @@
   <script src="/static/tabs/habits.js"></script>
   <script src="/static/tabs/planning.js"></script>
   <script src="/static/tabs/music.js"></script>
-  <script>loadTasks();</script>
+  <script>switchTab(localStorage.getItem('activeTab') || 'today');</script>
 </body>
 </html>

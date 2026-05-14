@@ -90,6 +90,7 @@ function loadingHtml() {
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
+let todayLoaded = false;
 let planningLoaded = false;
 let habitsLoaded = false;
 let musicLoaded = false;
@@ -99,7 +100,12 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
   document.getElementById(`tab-${tab}`).classList.add('active');
+  localStorage.setItem('activeTab', tab);
 
+  if (tab === 'today' && !todayLoaded) {
+    loadTasks();
+    todayLoaded = true;
+  }
   if (tab === 'planning' && !planningLoaded) {
     loadNextTasks();
     loadUpcomingTasks();
