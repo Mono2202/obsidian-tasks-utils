@@ -1,8 +1,13 @@
 .workout-form-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  grid-template-columns: repeat(4, 1fr) auto;
   gap: 8px;
   align-items: center;
+}
+
+.workout-form-grid input {
+  min-width: 0;
+  width: 100%;
 }
 
 @media (max-width: 700px) {
@@ -68,11 +73,33 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.workout-history-exercises {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .workout-history-ex {
-  font-size: 0.9rem;
-  padding: 2px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  background: var(--input-bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  width: fit-content;
+}
+
+.workout-history-ex-name {
+  font-size: 0.85rem;
+  font-weight: 500;
   color: var(--text);
+}
+
+.workout-history-ex-sets {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }

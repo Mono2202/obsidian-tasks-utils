@@ -49,11 +49,14 @@ function renderWorkoutHistory(history) {
     const label = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
     const rows = session.exercises.map(ex => {
       const weight = ex.weight ? ` @ ${escapeHtml(ex.weight)}` : '';
-      return `<div class="workout-history-ex">${escapeHtml(ex.name)} <span class="workout-weight">${ex.sets}&times;${ex.reps}${weight}</span></div>`;
+      return `<div class="workout-history-ex">
+        <span class="workout-history-ex-name">${escapeHtml(ex.name)}</span>
+        <span class="workout-history-ex-sets">${ex.sets}&times;${ex.reps}${weight}</span>
+      </div>`;
     }).join('');
     return `<div class="workout-history-session">
       <div class="workout-history-date">${label}</div>
-      ${rows}
+      <div class="workout-history-exercises">${rows}</div>
     </div>`;
   }).join('');
 }

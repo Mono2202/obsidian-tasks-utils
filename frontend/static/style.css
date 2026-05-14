@@ -178,7 +178,7 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
   flex-wrap: wrap;
 }
 
-input[type="text"], input[type="time"] {
+input[type="text"], input[type="time"], input[type="number"] {
   background: var(--input-bg);
   border: 1px solid var(--border);
   color: var(--text);
@@ -187,10 +187,14 @@ input[type="text"], input[type="time"] {
   font-size: 0.9rem;
   outline: none;
   transition: border-color 0.15s;
+  font-family: inherit;
 }
-input[type="text"]:focus, input[type="time"]:focus { border-color: var(--accent); }
+input[type="text"]:focus, input[type="time"]:focus, input[type="number"]:focus { border-color: var(--accent); }
 input[type="text"] { flex: 1; min-width: 160px; }
 input[type="time"] { width: 120px; }
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 button[type="submit"] {
   background: var(--accent);
