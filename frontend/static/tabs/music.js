@@ -162,6 +162,7 @@ async function submitMusicReview() {
     });
     const data = await res.json();
     if (res.ok) {
+      playCompletionFeedback();
       _setMusicStatus('Review saved!', false);
     } else {
       _setMusicStatus(data.error || 'Failed to save.', true);

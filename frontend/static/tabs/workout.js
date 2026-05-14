@@ -135,6 +135,7 @@ async function addExercise(e) {
     });
     const data = await res.json();
     if (res.ok) {
+      playCompletionFeedback();
       renderWorkoutList(data.exercises);
       document.getElementById('workout-sets').value = '';
       document.getElementById('workout-reps').value = '';
