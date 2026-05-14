@@ -407,3 +407,13 @@ class Obsidian:
             if exercises:
                 history.append({'date': date_str, 'exercises': exercises})
         return history
+
+    def fetch_exercise_suggestions(self, days=60):
+        from datetime import date, timedelta
+        seen = {}
+        today = date.today()
+        for i in range(days, -1, -1):
+            d = today - timedelta(days=i)
+            for ex in self.fetch_workout(d.strftime('%Y-%m-%d')):
+                seen[ex['name']] = ex
+        return sorted(seen.values(), key=lambda x: x['name'].lower())

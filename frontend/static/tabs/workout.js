@@ -1,3 +1,43 @@
+let _exerciseSuggestions = [];
+let _filteredSuggestions = [];
+
+async function _loadExerciseSuggestions() {
+  try {
+    const res = await fetch('/workout/exercises');
+    const data = await res.json();
+    _exerciseSuggestions = data.exercises;
+  } catch (_) {}
+}
+
+function _showSuggestions(query) {
+  const box = document.getElementById('workout-suggestions');
+  if (!query) { box.style.display = 'none'; return; }
+  _filteredSuggestions = _exerciseSuggestions.filter(e =>
+    e.name.toLowerCase().includes(query.toLowerCase())
+  );
+  if (!_filteredSuggestions.length) { box.style.display = 'none'; return; }
+  box.innerHTML = _filteredSuggestions.map((e, i) => {
+    const weight = e.weight ? ` @ ${escapeHtml(e.weight)}` : '';
+    const hint = `<span style="color:var(--text-muted);font-size:0.8rem;margin-left:8px">${e.sets}×${e.reps}${weight}</span>`;
+    return `<div class="workout-suggestion-item" onmousedown="_pickSuggestion(${i})">${escapeHtml(e.name)}${hint}</div>`;
+  }).join('');
+  box.style.display = 'block';
+}
+
+function _pickSuggestion(i) {
+  const ex = _filteredSuggestions[i];
+  document.getElementById('workout-name').value = ex.name;
+  document.getElementById('workout-sets').value = ex.sets;
+  document.getElementById('workout-reps').value = ex.reps;
+  document.getElementById('workout-weight').value = ex.weight || '';
+  document.getElementById('workout-suggestions').style.display = 'none';
+  document.getElementById('workout-sets').focus();
+}
+
+function _hideSuggestions() {
+  document.getElementById('workout-suggestions').style.display = 'none';
+}
+
 async function loadWorkout() {
   document.getElementById('workout-list').innerHTML = loadingHtml();
   try {
@@ -100,6 +140,7 @@ async function addExercise(e) {
       document.getElementById('workout-reps').value = '';
       document.getElementById('workout-weight').value = '';
       feedback.textContent = '';
+      _loadExerciseSuggestions();
       document.getElementById('workout-sets').focus();
     } else {
       feedback.textContent = data.error || 'Failed to add.';
@@ -126,4 +167,8 @@ async function deleteExercise(index) {
 function loadWorkoutTab() {
   loadWorkout();
   loadWorkoutHistory();
+  _loadExerciseSuggestions();
+  const nameInput = document.getElementById('workout-name');
+  nameInput.addEventListener('input', e => _showSuggestions(e.target.value));
+  nameInput.addEventListener('blur', () => setTimeout(_hideSuggestions, 150));
 }
