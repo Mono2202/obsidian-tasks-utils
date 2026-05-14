@@ -104,9 +104,9 @@
 .ex-reps   { color: #4db8c8; }
 .ex-weight { color: #a98ef5; }
 
-#workout-sets   { color: var(--accent); }
-#workout-reps   { color: #4db8c8; }
-#workout-weight { color: #a98ef5; }
+#workout-sets,   #workout-sets::placeholder   { color: var(--accent); }
+#workout-reps,   #workout-reps::placeholder   { color: #4db8c8; }
+#workout-weight, #workout-weight::placeholder { color: #a98ef5; }
 
 .workout-delete-btn {
   background: none;
