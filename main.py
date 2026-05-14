@@ -1,4 +1,6 @@
 import os
+import subprocess
+from datetime import date
 import dotenv
 from flask import Flask, render_template, send_from_directory
 
@@ -50,8 +52,15 @@ def assets(filename):
         os.path.join(os.path.dirname(__file__), 'frontend', 'assets'), filename
     )
 
+_daily_open_date = None
+
 @app.route('/')
 def index():
+    global _daily_open_date
+    today = date.today()
+    if _daily_open_date != today:
+        subprocess.Popen(['obsidian', 'daily:read'])
+        _daily_open_date = today
     return render_template('index.html')
 
 app.register_blueprint(create_tasks_blueprint(obsidian, tasks_store, logger))
