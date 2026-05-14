@@ -51,4 +51,9 @@ def create_workout_blueprint(obsidian, logger):
         history = obsidian.fetch_workout_history(days=14)
         return jsonify({'history': history})
 
+    @bp.route('/workout/exercises', methods=['GET'])
+    def workout_exercises():
+        exercises = obsidian.fetch_exercise_suggestions()
+        return jsonify({'exercises': exercises})
+
     return bp

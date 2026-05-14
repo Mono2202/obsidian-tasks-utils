@@ -10,11 +10,47 @@
   width: 100%;
 }
 
+.workout-name-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.workout-name-wrap input {
+  width: 100%;
+}
+
+.workout-suggestions {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--shadow);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.workout-suggestion-item {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.workout-suggestion-item:first-child { border-radius: 8px 8px 0 0; }
+.workout-suggestion-item:last-child  { border-radius: 0 0 8px 8px; }
+.workout-suggestion-item:only-child  { border-radius: 8px; }
+.workout-suggestion-item:hover { background: var(--input-bg); }
+
 @media (max-width: 700px) {
   .workout-form-grid {
     grid-template-columns: 1fr 1fr;
   }
-  .workout-form-grid input:first-child,
+  .workout-name-wrap,
   .workout-add-btn { grid-column: 1 / -1; }
 }
 
@@ -33,8 +69,8 @@
 
 .workout-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
   padding: 10px 12px;
   background: var(--input-bg);
   border-radius: 8px;
@@ -42,14 +78,26 @@
   margin-bottom: 6px;
 }
 
-.workout-item-info { display: flex; flex-direction: column; gap: 2px; }
 .workout-item-name { font-size: 0.95rem; font-weight: 500; }
-.workout-item-sets { font-size: 0.85rem; }
+
+.workout-set-rows { display: flex; flex-direction: column; gap: 3px; }
+
+.workout-set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workout-set-stats { font-size: 0.85rem; }
 
 .ex-sets   { color: var(--accent); }
 .ex-x      { color: var(--text-muted); margin: 0 1px; }
 .ex-reps   { color: #4db8c8; }
 .ex-weight { color: #a98ef5; }
+
+#workout-sets   { color: var(--accent); }
+#workout-reps   { color: #4db8c8; }
+#workout-weight { color: #a98ef5; }
 
 .workout-delete-btn {
   background: none;
@@ -82,8 +130,8 @@
 
 .workout-history-exercises {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .workout-history-ex {
@@ -94,7 +142,6 @@
   background: var(--input-bg);
   border-radius: 6px;
   border: 1px solid var(--border);
-  width: fit-content;
 }
 
 .workout-history-ex-name {
@@ -103,7 +150,5 @@
   color: var(--text);
 }
 
-.workout-history-ex-sets {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
+.workout-history-ex .workout-set-rows { gap: 2px; }
+.workout-history-ex .workout-set-stats { font-size: 0.75rem; color: var(--text-muted); }

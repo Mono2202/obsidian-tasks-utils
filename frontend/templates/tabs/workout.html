@@ -8,7 +8,10 @@
       <div id="workout-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
       <form id="workout-form" onsubmit="addExercise(event)" style="margin-top:16px">
         <div class="workout-form-grid">
-          <input type="text" id="workout-name" placeholder="Exercise name" required autocomplete="off" />
+          <div class="workout-name-wrap">
+            <input type="text" id="workout-name" placeholder="Exercise name" required autocomplete="off" />
+            <div id="workout-suggestions" class="workout-suggestions"></div>
+          </div>
           <input type="number" id="workout-sets" placeholder="Sets" min="1" required />
           <input type="number" id="workout-reps" placeholder="Reps" min="1" required />
           <input type="text" id="workout-weight" placeholder="Weight (optional)" autocomplete="off" />
