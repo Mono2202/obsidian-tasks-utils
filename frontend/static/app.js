@@ -94,6 +94,7 @@ let todayLoaded = false;
 let planningLoaded = false;
 let habitsLoaded = false;
 let musicLoaded = false;
+let workoutLoaded = false;
 
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -118,5 +119,9 @@ function switchTab(tab) {
   if (tab === 'music' && !musicLoaded) {
     loadMusic();
     musicLoaded = true;
+  }
+  if (tab === 'workout' && !workoutLoaded) {
+    loadWorkoutTab();
+    workoutLoaded = true;
   }
 }

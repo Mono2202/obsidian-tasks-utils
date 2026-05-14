@@ -184,7 +184,7 @@ class MusicWriter:
     # ------------------------------------------------------------------ #
 
     def _song_file_path(self, track: TrackInfo) -> Path:
-        songs_dir = self._root / "songs"
+        songs_dir = self._root / "Singles"
         songs_dir.mkdir(exist_ok=True)
         return songs_dir / f"{_sanitize(track.track_name)}.md"
 

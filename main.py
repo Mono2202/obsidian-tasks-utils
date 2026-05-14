@@ -1,4 +1,6 @@
 import os
+import subprocess
+from datetime import date
 import dotenv
 from flask import Flask, render_template, send_from_directory
 
@@ -9,6 +11,7 @@ from backend.notifications.pushover import Pushover
 from backend.routes.tasks import create_tasks_blueprint
 from backend.routes.habits import create_habits_blueprint
 from backend.routes.music import create_music_blueprint
+from backend.routes.workout import create_workout_blueprint
 
 FETCH_TASKS_INTERVAL = 30
 
@@ -50,13 +53,21 @@ def assets(filename):
         os.path.join(os.path.dirname(__file__), 'frontend', 'assets'), filename
     )
 
+_daily_open_date = None
+
 @app.route('/')
 def index():
+    global _daily_open_date
+    today = date.today()
+    if _daily_open_date != today:
+        subprocess.Popen(['obsidian', 'daily:read'])
+        _daily_open_date = today
     return render_template('index.html')
 
 app.register_blueprint(create_tasks_blueprint(obsidian, tasks_store, logger))
 app.register_blueprint(create_habits_blueprint(obsidian, logger))
 app.register_blueprint(create_music_blueprint(_spotify, _music_writer, logger, _spotify_error))
+app.register_blueprint(create_workout_blueprint(obsidian, logger))
 
 def main():
     app.run(host=os.getenv("HOST"), port=int(os.getenv("PORT")), debug=False)

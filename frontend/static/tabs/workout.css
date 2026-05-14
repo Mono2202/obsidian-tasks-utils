@@ -1,0 +1,109 @@
+.workout-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.workout-form-grid input {
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  .workout-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .workout-form-grid input:first-child,
+  .workout-add-btn { grid-column: 1 / -1; }
+}
+
+.workout-add-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.workout-add-btn:hover { background: var(--accent-hover); }
+
+.workout-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--input-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.workout-item-info { display: flex; flex-direction: column; gap: 2px; }
+.workout-item-name { font-size: 0.95rem; font-weight: 500; }
+.workout-item-sets { font-size: 0.85rem; }
+
+.ex-sets   { color: var(--accent); }
+.ex-x      { color: var(--text-muted); margin: 0 1px; }
+.ex-reps   { color: #4db8c8; }
+.ex-weight { color: #a98ef5; }
+
+.workout-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
+}
+.workout-delete-btn:hover { color: var(--danger); background: var(--input-bg); }
+
+.workout-history-session {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.workout-history-session:last-child { border-bottom: none; margin-bottom: 0; }
+
+.workout-history-date {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.workout-history-exercises {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.workout-history-ex {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  background: var(--input-bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  width: fit-content;
+}
+
+.workout-history-ex-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.workout-history-ex-sets {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

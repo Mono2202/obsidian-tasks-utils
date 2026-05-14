@@ -1,0 +1,25 @@
+<div id="tab-workout" class="tab-panel">
+  <div class="tasks-row">
+    <div class="card" style="flex:2;min-width:0">
+      <div class="tasks-header">
+        <h2>Today's Workout</h2>
+        <button class="refresh-btn" onclick="loadWorkout()">Refresh</button>
+      </div>
+      <div id="workout-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+      <form id="workout-form" onsubmit="addExercise(event)" style="margin-top:16px">
+        <div class="workout-form-grid">
+          <input type="text" id="workout-name" placeholder="Exercise name" required autocomplete="off" />
+          <input type="number" id="workout-sets" placeholder="Sets" min="1" required />
+          <input type="number" id="workout-reps" placeholder="Reps" min="1" required />
+          <input type="text" id="workout-weight" placeholder="Weight (optional)" autocomplete="off" />
+          <button type="submit" class="workout-add-btn">Add</button>
+        </div>
+        <div id="workout-feedback" class="feedback"></div>
+      </form>
+    </div>
+    <div class="card" style="flex:1;min-width:0">
+      <h2>History</h2>
+      <div id="workout-history"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+    </div>
+  </div>
+</div>
