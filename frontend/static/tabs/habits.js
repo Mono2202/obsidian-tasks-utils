@@ -13,6 +13,7 @@ async function loadHabits() {
       const doneClass = h.done_today ? ' done' : '';
       const safeName = h.name.replace(/'/g, "\\'");
       const descHtml = h.description ? `<span class="habit-desc">${escapeHtml(h.description)}</span>` : '';
+      const streakHtml = h.streak > 0 ? `<span class="habit-streak">${h.streak} 🔥</span>` : '';
       return `
         <div class="habit-item${doneClass}" id="habit-${CSS.escape(h.name)}">
           <input type="checkbox" class="task-checkbox" ${h.done_today ? 'checked' : ''} onchange="toggleHabit('${safeName}', this)" />
@@ -20,6 +21,7 @@ async function loadHabits() {
             <span class="habit-name${doneClass}">${escapeHtml(h.title)}</span>
             ${descHtml}
           </div>
+          ${streakHtml}
         </div>`;
     }).join('');
   } catch (e) {

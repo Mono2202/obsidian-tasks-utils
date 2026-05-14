@@ -25,3 +25,10 @@
 .habit-name { font-size: 0.95rem; }
 .habit-desc { font-size: 0.8rem; color: var(--text-muted); }
 .habit-name.done { text-decoration: line-through; color: var(--text-muted); }
+
+.habit-streak {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}

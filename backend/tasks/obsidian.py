@@ -238,12 +238,33 @@ class Obsidian:
                 description = desc_match.group(1).strip().strip('"\'') if desc_match else None
                 entries = re.findall(r"^\s*-\s+(\d{4}-\d{2}-\d{2})\s*$", content, re.MULTILINE)
                 done_today = today in entries
-                habits.append({"name": name, "title": title, "description": description, "done_today": done_today, "entries": entries})
+                max_gap_match = re.search(r"^maxGap:\s*(\d+)$", content, re.MULTILINE)
+                max_gap = int(max_gap_match.group(1)) if max_gap_match else 0
+                streak = self._calculate_streak(entries, max_gap)
+                habits.append({"name": name, "title": title, "description": description, "done_today": done_today, "streak": streak, "entries": entries})
             except Exception as e:
                 logger.error(f"Error reading habit {file_path}: {e}")
 
         logger.info(f"Fetched {len(habits)} habits")
         return habits
+
+    def _calculate_streak(self, entries, max_gap=0):
+        from datetime import date, timedelta
+        if not entries:
+            return 0
+        dates = sorted(set(entries), reverse=True)
+        today = date.today()
+        days_since_last = (today - date.fromisoformat(dates[0])).days
+        if days_since_last > max_gap + 1:
+            return 0
+        streak = 1
+        for i in range(1, len(dates)):
+            gap = (date.fromisoformat(dates[i - 1]) - date.fromisoformat(dates[i])).days
+            if gap <= max_gap + 1:
+                streak += 1
+            else:
+                break
+        return streak
 
     def complete_habit(self, name):
         today = datetime.now().strftime("%Y-%m-%d")
