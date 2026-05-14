@@ -33,8 +33,8 @@
 
 .workout-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
   padding: 10px 12px;
   background: var(--input-bg);
   border-radius: 8px;
@@ -42,9 +42,17 @@
   margin-bottom: 6px;
 }
 
-.workout-item-info { display: flex; flex-direction: column; gap: 2px; }
 .workout-item-name { font-size: 0.95rem; font-weight: 500; }
-.workout-item-sets { font-size: 0.85rem; }
+
+.workout-set-rows { display: flex; flex-direction: column; gap: 3px; }
+
+.workout-set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workout-set-stats { font-size: 0.85rem; }
 
 .ex-sets   { color: var(--accent); }
 .ex-x      { color: var(--text-muted); margin: 0 1px; }
@@ -82,8 +90,8 @@
 
 .workout-history-exercises {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .workout-history-ex {
@@ -94,7 +102,6 @@
   background: var(--input-bg);
   border-radius: 6px;
   border: 1px solid var(--border);
-  width: fit-content;
 }
 
 .workout-history-ex-name {
@@ -103,7 +110,5 @@
   color: var(--text);
 }
 
-.workout-history-ex-sets {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
+.workout-history-ex .workout-set-rows { gap: 2px; }
+.workout-history-ex .workout-set-stats { font-size: 0.75rem; color: var(--text-muted); }
