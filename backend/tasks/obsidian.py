@@ -3,7 +3,7 @@ import re
 import uuid
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from logger import get_logger
+from backend.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -78,7 +78,6 @@ class Obsidian:
                                             "raw_line": line,
                                             "completable": completable,
                                         }
-
                     except Exception as e:
                         logger.error(f"Error reading {file_path}: {e}")
 
@@ -101,7 +100,6 @@ class Obsidian:
             recur_key = recur_match.group(1)
             delta = self.RECUR_DELTAS[recur_key]()
 
-            # Find the scheduled or due date to advance
             sched_match = self.SCHED_DATE_PATTERN.search(raw_line)
             due_match = self.DUE_DATE_PATTERN.search(raw_line)
             if sched_match:
@@ -137,7 +135,6 @@ class Obsidian:
         with open(self.imploding_tasks_file, "a", encoding="utf-8") as f:
             f.write(f"{formatted_task}\n")
         logger.info(f"Task added to today: {formatted_task}")
-
         return formatted_task
 
     def fetch_next_tasks(self):
@@ -256,8 +253,6 @@ class Obsidian:
         if today in entries:
             raise ValueError("Habit already completed today")
 
-        # Find the last date entry under the entries: key and insert after it,
-        # or insert on the next line after entries: if the list is empty.
         last_entry_match = None
         for m in re.finditer(r"^\s*-\s+\d{4}-\d{2}-\d{2}\s*$", content, re.MULTILINE):
             last_entry_match = m

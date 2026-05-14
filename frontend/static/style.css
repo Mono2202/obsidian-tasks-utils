@@ -246,41 +246,6 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
 .tab-panel { display: none; flex-direction: column; gap: 20px; }
 .tab-panel.active { display: flex; }
 
-/* Habits */
-#habits-list { display: flex; flex-direction: column; gap: 8px; }
-
-.habit-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  background: var(--input-bg);
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  transition: opacity 0.2s;
-}
-
-.habit-item.done { opacity: 0.5; }
-.habit-item.completing { opacity: 0.4; pointer-events: none; }
-
-.habit-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.habit-name {
-  font-size: 0.95rem;
-}
-
-.habit-desc {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.habit-name.done { text-decoration: line-through; color: var(--text-muted); }
-
 @media (max-width: 640px) {
   .planning-row { flex-direction: column; }
   .planning-row > .card { width: 100%; }

@@ -1,0 +1,19 @@
+<div id="tab-planning" class="tab-panel">
+  <div class="tasks-row planning-row">
+    <div class="card">
+      <div class="tasks-header">
+        <h2>Next</h2>
+        <button class="refresh-btn" onclick="loadNextTasks()">Refresh</button>
+      </div>
+      <div id="next-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+    </div>
+
+    <div class="card">
+      <div class="tasks-header">
+        <h2>Upcoming <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted)">(next 30 days)</span></h2>
+        <button class="refresh-btn" onclick="loadUpcomingTasks()">Refresh</button>
+      </div>
+      <div id="upcoming-tasks-list"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,197 @@
+/* Music Tab */
+.music-container { display: flex; justify-content: center; }
+
+.music-card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.music-cover-wrap {
+  width: 200px;
+  height: 200px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.music-cover {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  display: none;
+}
+
+.music-cover-placeholder {
+  width: 200px;
+  height: 200px;
+  background: var(--input-bg);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.music-track-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.music-track-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: -8px;
+}
+
+.music-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.music-mode-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.music-mode-toggle input[type="checkbox"] {
+  display: none;
+}
+
+.music-mode-track {
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  background: var(--border);
+  border-radius: 20px;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.music-mode-track::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s;
+}
+
+.music-mode-toggle input:checked ~ .music-mode-track {
+  background: var(--accent);
+}
+
+.music-mode-toggle input:checked ~ .music-mode-track::after {
+  transform: translateX(16px);
+}
+
+.music-mode-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  min-width: 72px;
+}
+
+.music-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.music-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.star-rating { display: flex; gap: 3px; }
+
+.star {
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--border);
+  transition: color 0.08s;
+  user-select: none;
+  line-height: 1;
+}
+
+.star.filled { color: #f5c518; }
+.star.hover  { color: #f5a623; }
+
+.music-rating-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  min-width: 38px;
+}
+
+.music-notes {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  resize: vertical;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.music-notes:focus { border-color: var(--accent); }
+
+.music-submit-btn {
+  background: #1db954;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-size: 0.95rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.15s;
+  width: 100%;
+}
+.music-submit-btn:hover { background: #17a349; }
+.music-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.music-status {
+  font-size: 0.85rem;
+  min-height: 20px;
+  text-align: center;
+}
+.music-status.ok  { color: var(--success); }
+.music-status.err { color: var(--danger); }
+
+.music-auth-prompt {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.music-auth-btn {
+  display: inline-block;
+  background: #1db954;
+  color: #fff;
+  text-decoration: none;
+  padding: 9px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.15s;
+}
+.music-auth-btn:hover { background: #17a349; }
