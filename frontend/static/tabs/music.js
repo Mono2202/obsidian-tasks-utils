@@ -104,6 +104,7 @@ async function _loadExistingReview(track) {
 }
 
 async function _pollMusicTrack() {
+  if (!document.getElementById('tab-music').classList.contains('active')) return;
   try {
     const res = await fetch('/music/current-track');
     const authPrompt = document.getElementById('music-auth-prompt');
