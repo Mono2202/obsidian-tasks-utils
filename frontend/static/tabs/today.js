@@ -86,6 +86,7 @@ async function completeTask(id, checkbox) {
         try {
           const undoRes = await fetch(`/undo-complete-task/${id}`, { method: 'POST' });
           if (undoRes.ok) {
+            playUndoFeedback();
             item.classList.remove('task-done');
             const newCheckbox = document.createElement('input');
             newCheckbox.type = 'checkbox';
