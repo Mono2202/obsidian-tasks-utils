@@ -13,7 +13,8 @@ from backend.music.spotify import SpotifyClient, TrackInfo, AlbumTrack, AlbumInf
 logger = get_logger(__name__)
 
 _INVALID_CHARS = re.compile(r'[\\/:*?"<>|]')
-_RATING_CELL = re.compile(r'^\d+/10$')
+_RATING_CELL = re.compile(r'^[★☆]+ \(\d+/10\)$')
+_RATING_VALUE = re.compile(r'\((\d+)/10\)')
 
 
 class Music:
@@ -31,6 +32,32 @@ class Music:
     # ------------------------------------------------------------------ #
     # Public API
     # ------------------------------------------------------------------ #
+
+    def migrate_rating_format(self) -> int:
+        _old = re.compile(r'^(\d+)/10$')
+        changed = 0
+        for path in self._root.rglob("*.md"):
+            content = path.read_text(encoding="utf-8")
+            lines = content.splitlines()
+            modified = False
+            for i, line in enumerate(lines):
+                if not line.startswith("|"):
+                    continue
+                cells = self._parse_row(line)
+                if len(cells) < 3:
+                    continue
+                m = _old.match(cells[2])
+                if not m:
+                    continue
+                rating = int(m.group(1))
+                cells[2] = f"{self._stars(rating)} ({rating}/10)"
+                lines[i] = self._build_row(cells)
+                modified = True
+            if modified:
+                path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+                logger.info(f"Migrated: {path.name}")
+                changed += 1
+        return changed
 
     def upsert_review(self, track: TrackInfo, rating: int, notes: str, album_mode: bool = True) -> None:
         if album_mode:
@@ -66,10 +93,10 @@ class Music:
         cells = self._parse_row(row)
         if len(cells) < 5 or not _RATING_CELL.match(cells[2]):
             return None
-        try:
-            rating = int(cells[2].split("/")[0])
-        except ValueError:
+        m = _RATING_VALUE.search(cells[2])
+        if not m:
             return None
+        rating = int(m.group(1))
         notes = cells[4].replace("<br><br>", "\n")
         return rating, notes
 
@@ -104,7 +131,7 @@ class Music:
         rows = []
         for t in album_tracks:
             if t.track_name == review_name:
-                row_rating = f"{rating}/10"
+                row_rating = f"{self._stars(rating)} ({rating}/10)"
                 row_notes = notes.replace("\n", "<br><br>")
             else:
                 row_rating = ""
@@ -132,7 +159,7 @@ class Music:
         content = path.read_text(encoding="utf-8")
         lines = content.splitlines()
         notes_cell = notes.replace("\n", "<br><br>")
-        rating_str = f"{rating}/10"
+        rating_str = f"{self._stars(rating)} ({rating}/10)"
         for i, line in enumerate(lines):
             if not line.startswith("|"):
                 continue
@@ -163,7 +190,7 @@ class Music:
         if not rating_match:
             return None
         rating = int(rating_match.group(1))
-        marker = "**Notes:**\n"
+        marker = "## Notes\n"
         idx = content.find(marker)
         notes = content[idx + len(marker):].strip() if idx != -1 else ""
         return rating, notes
@@ -188,11 +215,12 @@ class Music:
             f"release: {track.release_year}",
             f"date: {today}",
             f"rating: {rating}",
+            f"stars: {self._stars(rating)}",
             f"cover: {cover_filename}",
             "---",
             f"![[{cover_filename}|135]]",
             "",
-            "**Notes:**",
+            "## Notes",
             notes,
         ]
         return "\n".join(lines) + "\n"
@@ -200,7 +228,8 @@ class Music:
     def _update_song_file(self, path: Path, track: TrackInfo, rating: int, notes: str) -> None:
         content = path.read_text(encoding="utf-8")
         content = re.sub(r'^rating:\s*\d+$', f'rating: {rating}', content, flags=re.MULTILINE)
-        marker = "**Notes:**\n"
+        content = re.sub(r'^stars: [★☆]+$', f'stars: {self._stars(rating)}', content, flags=re.MULTILINE)
+        marker = "## Notes\n"
         idx = content.find(marker)
         if idx != -1:
             content = content[:idx + len(marker)] + notes + "\n"
@@ -215,6 +244,10 @@ class Music:
     # ------------------------------------------------------------------ #
     # Helpers
     # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _stars(rating: int) -> str:
+        return "★" * rating + "☆" * (10 - rating)
 
     @staticmethod
     def _sanitize(name: str) -> str:
@@ -240,7 +273,9 @@ class Music:
             if in_table and line.startswith("|"):
                 cells = Music._parse_row(line)
                 if len(cells) >= 3 and _RATING_CELL.match(cells[2]):
-                    ratings.append(int(cells[2].split("/")[0]))
+                    m = _RATING_VALUE.search(cells[2])
+                    if m:
+                        ratings.append(int(m.group(1)))
         if not ratings:
             return content
         avg = round(sum(ratings) / len(ratings), 2)

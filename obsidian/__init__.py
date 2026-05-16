@@ -4,6 +4,7 @@ from .tasks import Tasks
 from .habits import Habits
 from .workout import Workout
 from .music import Music
+from .food import Food
 
 
 class Vault:
@@ -34,3 +35,7 @@ class Vault:
             reviews_path=abspath(os.getenv("OBSIDIAN_REVIEWS_PATH", "")),
             assets_path=abspath(os.getenv("OBSIDIAN_ASSETS_PATH", "")),
         ) if spotify else None
+        self.food = Food(
+            reviews_path=abspath(os.getenv("OBSIDIAN_FOOD_PATH", "")),
+            assets_path=abspath(os.getenv("OBSIDIAN_FOOD_ASSETS_PATH", "")),
+        ) if os.getenv("OBSIDIAN_FOOD_PATH") else None
