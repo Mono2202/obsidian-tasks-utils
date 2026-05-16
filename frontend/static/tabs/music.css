@@ -48,6 +48,34 @@
   margin-top: -8px;
 }
 
+.music-waveform {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 28px;
+}
+
+.music-waveform span {
+  width: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  min-height: 3px;
+  animation: waveBar 0.8s ease-in-out infinite alternate;
+}
+
+.music-waveform span:nth-child(1) { animation-duration: 0.65s; animation-delay: 0.00s; }
+.music-waveform span:nth-child(2) { animation-duration: 0.85s; animation-delay: 0.10s; }
+.music-waveform span:nth-child(3) { animation-duration: 0.55s; animation-delay: 0.05s; }
+.music-waveform span:nth-child(4) { animation-duration: 0.75s; animation-delay: 0.20s; }
+.music-waveform span:nth-child(5) { animation-duration: 0.60s; animation-delay: 0.12s; }
+.music-waveform span:nth-child(6) { animation-duration: 0.90s; animation-delay: 0.08s; }
+.music-waveform span:nth-child(7) { animation-duration: 0.70s; animation-delay: 0.18s; }
+
+@keyframes waveBar {
+  0%   { height: 3px; }
+  100% { height: 24px; }
+}
+
 .music-mode-row {
   display: flex;
   align-items: center;
@@ -107,6 +135,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
 .music-label {
@@ -124,6 +153,11 @@
   transition: color 0.08s;
   user-select: none;
   line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .star { font-size: 1.15rem; }
+  .star-rating { gap: 1px; }
 }
 
 .star.filled { color: #f5c518; }
@@ -151,7 +185,7 @@
 .music-notes:focus { border-color: var(--accent); }
 
 .music-submit-btn {
-  background: #1db954;
+  background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -162,7 +196,7 @@
   transition: background 0.15s;
   width: 100%;
 }
-.music-submit-btn:hover { background: #17a349; }
+.music-submit-btn:hover { background: var(--accent-hover); }
 .music-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .music-status {
@@ -185,7 +219,7 @@
 
 .music-auth-btn {
   display: inline-block;
-  background: #1db954;
+  background: var(--accent);
   color: #fff;
   text-decoration: none;
   padding: 9px 22px;
@@ -194,4 +228,4 @@
   font-size: 0.9rem;
   transition: background 0.15s;
 }
-.music-auth-btn:hover { background: #17a349; }
+.music-auth-btn:hover { background: var(--accent-hover); }

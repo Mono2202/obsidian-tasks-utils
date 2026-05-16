@@ -37,10 +37,18 @@ async function toggleHabit(name, checkbox) {
   try {
     const res = await fetch(url, { method: 'POST' });
     if (res.ok) {
-      if (completing) playCompletionFeedback();
+      if (completing) playCompletionFeedback(); else playUndoFeedback();
       item.classList.remove('completing');
       item.classList.toggle('done', completing);
       item.querySelector('.habit-name').classList.toggle('done', completing);
+      const data = await res.json();
+      const streakEl = item.querySelector('.habit-streak');
+      if (data.streak > 0) {
+        if (streakEl) streakEl.textContent = `${data.streak} 🔥`;
+        else item.insertAdjacentHTML('beforeend', `<span class="habit-streak">${data.streak} 🔥</span>`);
+      } else {
+        if (streakEl) streakEl.remove();
+      }
     } else {
       const data = await res.json();
       alert(data.error || 'Failed to update habit.');

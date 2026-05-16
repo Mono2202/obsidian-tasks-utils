@@ -51,7 +51,11 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
 
 .date { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
 
-.theme-toggle {
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+.header-btn {
+  display: inline-flex;
+  align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
@@ -60,8 +64,9 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
   cursor: pointer;
   font-size: 0.85rem;
   transition: background 0.15s;
+  text-decoration: none;
 }
-.theme-toggle:hover { background: var(--input-bg); }
+.header-btn:hover { background: var(--input-bg); }
 
 .main { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 
@@ -93,6 +98,24 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
 .task-item.completing { opacity: 0.4; pointer-events: none; }
 .task-item.overdue { border-color: #5a2020; }
 .task-item.started { border-color: #1a4a6a; }
+.task-item.task-done { opacity: 0.55; border-color: var(--success); }
+.task-item.task-done .task-text { text-decoration: line-through; color: var(--text-muted); }
+
+.undo-btn {
+  flex-shrink: 0;
+  margin-top: 1px;
+  background: none;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 4px;
+  font-size: 0.72rem;
+  padding: 1px 7px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.undo-btn:hover { background: var(--accent); color: #fff; }
+.undo-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .task-checkbox {
   width: 18px;
@@ -162,13 +185,13 @@ a.badge.file:hover { color: var(--text); cursor: pointer; }
 .refresh-btn:hover { color: var(--text); border-color: var(--text-muted); }
 
 /* SVG icon buttons */
-.tab-btn img, .theme-toggle img {
+.tab-btn img, .header-btn img {
   width: 26px;
   height: 26px;
   display: block;
 }
 :root[data-theme="dark"] .tab-btn img,
-:root[data-theme="dark"] .theme-toggle img {
+:root[data-theme="dark"] .header-btn img {
   filter: brightness(0) invert(1);
 }
 

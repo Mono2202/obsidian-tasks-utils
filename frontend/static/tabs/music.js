@@ -45,6 +45,7 @@ function _showMusicIdle(msg) {
   document.getElementById('music-track-meta').textContent = '';
   document.getElementById('music-cover').style.display = 'none';
   document.getElementById('music-cover-placeholder').style.display = 'block';
+  document.getElementById('music-waveform').style.display = 'none';
   _resetMusicForm();
   _musicCurrentTrack = null;
 }
@@ -60,6 +61,7 @@ function _resetMusicForm() {
 async function _onMusicTrackChanged(track) {
   document.getElementById('music-track-title').textContent = track.track_name;
   document.getElementById('music-track-meta').textContent = `${track.artist} · ${track.album_name} (${track.release_year})`;
+  document.getElementById('music-waveform').style.display = 'flex';
 
   const img = document.getElementById('music-cover');
   const placeholder = document.getElementById('music-cover-placeholder');

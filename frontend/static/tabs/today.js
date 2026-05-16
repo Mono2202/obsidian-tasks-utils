@@ -63,9 +63,43 @@ async function completeTask(id, checkbox) {
     const res = await fetch(`/complete-task/${id}`, { method: 'POST' });
     if (res.ok) {
       playCompletionFeedback();
-      item.style.transition = 'opacity 0.3s';
-      item.style.opacity = '0';
-      setTimeout(() => item.remove(), 300);
+      item.classList.remove('completing');
+      item.classList.add('task-done');
+
+      const checkboxEl = item.querySelector('.task-checkbox');
+      const undoBtn = document.createElement('button');
+      undoBtn.className = 'undo-btn';
+      undoBtn.textContent = 'Undo';
+      checkboxEl.replaceWith(undoBtn);
+
+      const removeTask = () => {
+        item.style.transition = 'opacity 0.3s';
+        item.style.opacity = '0';
+        setTimeout(() => item.remove(), 300);
+      };
+
+      const timer = setTimeout(removeTask, 5000);
+
+      undoBtn.onclick = async () => {
+        clearTimeout(timer);
+        undoBtn.disabled = true;
+        try {
+          const undoRes = await fetch(`/undo-complete-task/${id}`, { method: 'POST' });
+          if (undoRes.ok) {
+            playUndoFeedback();
+            item.classList.remove('task-done');
+            const newCheckbox = document.createElement('input');
+            newCheckbox.type = 'checkbox';
+            newCheckbox.className = 'task-checkbox';
+            newCheckbox.onchange = function() { completeTask(id, this); };
+            undoBtn.replaceWith(newCheckbox);
+          } else {
+            removeTask();
+          }
+        } catch (_) {
+          removeTask();
+        }
+      };
     } else {
       const data = await res.json();
       alert(data.error || 'Failed to complete task.');

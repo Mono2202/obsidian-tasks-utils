@@ -1,10 +1,13 @@
 import re
+import time
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 
+UNDO_WINDOW = 30
 
 def create_tasks_blueprint(obsidian, tasks_store, logger):
     bp = Blueprint('tasks', __name__)
+    undo_store = {}
 
     @bp.route('/today-tasks', methods=['GET'])
     def today_tasks():
@@ -28,12 +31,34 @@ def create_tasks_blueprint(obsidian, tasks_store, logger):
         if not task:
             return jsonify({"error": "Task not found. Refresh and try again."}), 404
         try:
-            obsidian.complete_task(task["file_path"], task["raw_line"])
+            new_task_line = obsidian.complete_task(task["file_path"], task["raw_line"])
+            undo_store[task_id] = {
+                "task": task,
+                "new_task_line": new_task_line,
+                "expires_at": time.time() + UNDO_WINDOW,
+            }
             del tasks_store[task_id]
             logger.info(f"Task completed: {task['task']}")
-            return jsonify({"status": "success", "message": "Task marked as done"}), 200
+            return jsonify({"status": "success"}), 200
         except Exception as e:
             logger.error(f"Failed to complete task {task_id}: {e}")
+            return jsonify({"error": str(e)}), 500
+
+    @bp.route('/undo-complete-task/<task_id>', methods=['POST'])
+    def undo_complete_task(task_id):
+        entry = undo_store.pop(task_id, None)
+        if not entry:
+            return jsonify({"error": "Nothing to undo."}), 404
+        if time.time() > entry["expires_at"]:
+            return jsonify({"error": "Undo window expired."}), 410
+        try:
+            task = entry["task"]
+            obsidian.undo_complete_task(task["file_path"], task["raw_line"], entry["new_task_line"])
+            tasks_store[task_id] = task
+            logger.info(f"Task completion undone: {task['raw_line'].strip()}")
+            return jsonify({"status": "success"}), 200
+        except Exception as e:
+            logger.error(f"Failed to undo task {task_id}: {e}")
             return jsonify({"error": str(e)}), 500
 
     @bp.route('/add-task', methods=['GET'])
