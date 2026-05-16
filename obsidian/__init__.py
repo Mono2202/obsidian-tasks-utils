@@ -16,7 +16,7 @@ class Vault:
         self.tasks = Tasks(
             vault_path,
             inbox_path=abspath(os.getenv("OBSIDIAN_INBOX_PATH", "")),
-            today_path=abspath(os.getenv("OBSIDIAN_TODAY_PATH", "")),
+            imploding_tasks_path=abspath(os.getenv("OBSIDIAN_IMPLODING_TASKS_PATH", "")),
             ignore_dirs=ignore_dirs,
         )
         self.habits = Habits(

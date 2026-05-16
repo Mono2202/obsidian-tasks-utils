@@ -57,7 +57,7 @@
 
 .music-waveform span {
   width: 4px;
-  background: #1db954;
+  background: var(--accent);
   border-radius: 2px;
   min-height: 3px;
   animation: waveBar 0.8s ease-in-out infinite alternate;
@@ -185,7 +185,7 @@
 .music-notes:focus { border-color: var(--accent); }
 
 .music-submit-btn {
-  background: #1db954;
+  background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -196,7 +196,7 @@
   transition: background 0.15s;
   width: 100%;
 }
-.music-submit-btn:hover { background: #17a349; }
+.music-submit-btn:hover { background: var(--accent-hover); }
 .music-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .music-status {
@@ -219,7 +219,7 @@
 
 .music-auth-btn {
   display: inline-block;
-  background: #1db954;
+  background: var(--accent);
   color: #fff;
   text-decoration: none;
   padding: 9px 22px;
@@ -228,4 +228,4 @@
   font-size: 0.9rem;
   transition: background 0.15s;
 }
-.music-auth-btn:hover { background: #17a349; }
+.music-auth-btn:hover { background: var(--accent-hover); }

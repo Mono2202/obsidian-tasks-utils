@@ -28,10 +28,10 @@ class Tasks(ObsidianBase):
         "every month":   lambda: relativedelta(months=1),
     }
 
-    def __init__(self, vault_path, inbox_path, today_path, ignore_dirs=None):
+    def __init__(self, vault_path, inbox_path, imploding_tasks_path, ignore_dirs=None):
         super().__init__(vault_path, ignore_dirs)
         self.inbox_file = inbox_path
-        self.imploding_tasks_file = today_path
+        self.imploding_tasks_file = imploding_tasks_path
 
     def fetch_today_tasks(self):
         today = datetime.now().strftime("%Y-%m-%d")
