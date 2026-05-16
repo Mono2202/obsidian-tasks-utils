@@ -93,6 +93,24 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
 .task-item.completing { opacity: 0.4; pointer-events: none; }
 .task-item.overdue { border-color: #5a2020; }
 .task-item.started { border-color: #1a4a6a; }
+.task-item.task-done { opacity: 0.55; border-color: var(--success); }
+.task-item.task-done .task-text { text-decoration: line-through; color: var(--text-muted); }
+
+.undo-btn {
+  flex-shrink: 0;
+  margin-top: 1px;
+  background: none;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 4px;
+  font-size: 0.72rem;
+  padding: 1px 7px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.undo-btn:hover { background: var(--accent); color: #fff; }
+.undo-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .task-checkbox {
   width: 18px;

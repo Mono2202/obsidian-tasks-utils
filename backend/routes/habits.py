@@ -12,7 +12,8 @@ def create_habits_blueprint(obsidian, logger):
     def complete_habit(name):
         try:
             obsidian.complete_habit(name)
-            return jsonify({"status": "success"}), 200
+            streak = obsidian.get_habit_streak(name)
+            return jsonify({"status": "success", "streak": streak}), 200
         except ValueError as e:
             return jsonify({"error": str(e)}), 409
         except Exception as e:
@@ -23,7 +24,8 @@ def create_habits_blueprint(obsidian, logger):
     def uncomplete_habit(name):
         try:
             obsidian.uncomplete_habit(name)
-            return jsonify({"status": "success"}), 200
+            streak = obsidian.get_habit_streak(name)
+            return jsonify({"status": "success", "streak": streak}), 200
         except ValueError as e:
             return jsonify({"error": str(e)}), 409
         except Exception as e:

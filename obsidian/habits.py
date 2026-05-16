@@ -52,6 +52,15 @@ class Habits(ObsidianBase):
         logger.info(f"Fetched {len(habits)} habits")
         return habits
 
+    def get_habit_streak(self, name):
+        file_path = os.path.join(self.habits_dir, f"{name}.md")
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        entries = re.findall(r"^\s*-\s+(\d{4}-\d{2}-\d{2})\s*$", content, re.MULTILINE)
+        max_gap_match = re.search(r"^maxGap:\s*(\d+)$", content, re.MULTILINE)
+        max_gap = int(max_gap_match.group(1)) if max_gap_match else 0
+        return self._calculate_streak(entries, max_gap)
+
     def _calculate_streak(self, entries, max_gap=0):
         if not entries:
             return 0

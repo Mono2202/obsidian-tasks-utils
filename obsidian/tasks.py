@@ -106,11 +106,11 @@ class Tasks(ObsidianBase):
             if sched_match:
                 old_date_str = sched_match.group(1)
                 new_date_str = (datetime.strptime(old_date_str, "%Y-%m-%d") + delta).strftime("%Y-%m-%d")
-                new_task_line = raw_line.replace(f"⏳ {old_date_str}", f"⏳ {new_date_str}\n", 1)
+                new_task_line = raw_line.replace(f"⏳ {old_date_str}", f"⏳ {new_date_str}", 1)
             elif due_match:
                 old_date_str = due_match.group(1)
                 new_date_str = (datetime.strptime(old_date_str, "%Y-%m-%d") + delta).strftime("%Y-%m-%d")
-                new_task_line = raw_line.replace(f"📅 {old_date_str}", f"📅 {new_date_str}\n", 1)
+                new_task_line = raw_line.replace(f"📅 {old_date_str}", f"📅 {new_date_str}", 1)
             else:
                 new_task_line = None
 
@@ -118,13 +118,34 @@ class Tasks(ObsidianBase):
                 content = content.replace(raw_line, new_task_line + completed_line, 1)
                 logger.info(f"Recurring task rescheduled to {new_date_str}: {raw_line.strip()}")
             else:
+                new_task_line = None
                 content = content.replace(raw_line, completed_line, 1)
         else:
+            new_task_line = None
             content = content.replace(raw_line, completed_line, 1)
 
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
         logger.info(f"Task completed in {file_path}: {raw_line.strip()}")
+        return new_task_line
+
+    def undo_complete_task(self, file_path, raw_line, new_task_line=None):
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        today = datetime.now().strftime("%Y-%m-%d")
+        completed_line = raw_line.rstrip("\n").replace("- [ ]", "- [x]", 1) + f" ✅ {today}\n"
+
+        if new_task_line and (new_task_line + completed_line) in content:
+            content = content.replace(new_task_line + completed_line, raw_line, 1)
+        elif completed_line in content:
+            content = content.replace(completed_line, raw_line, 1)
+        else:
+            raise ValueError("Completed task not found in file")
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        logger.info(f"Task completion undone in {file_path}: {raw_line.strip()}")
 
     def add_task_to_today(self, task_description, time=None):
         today = datetime.now().strftime("%Y-%m-%d")
