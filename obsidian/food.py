@@ -84,19 +84,20 @@ class Food:
         homemade_dir = os.path.join(self.reviews_path, _HOME_MADE_DIR)
         os.makedirs(homemade_dir, exist_ok=True)
 
-        lines = [f"# {dish}", "",
-                 f"**Date:** {today}",
-                 f"**Rating:** {stars} ({rating}/10)"]
+        lines = ["---", f"date: {today}", f"rating: {rating}"]
         if cost:
-            lines.append(f"**Cost:** {cost}")
+            lines.append(f"cost: {cost}")
+        lines.append("---")
         if photo_name:
-            lines += ["", f"![[{photo_name}]]"]
+            lines.append(f"![[{photo_name}]]")
         if notes:
-            lines += ["", "## Notes", "", notes]
+            if photo_name:
+                lines.append("")
+            lines += ["## Notes", notes]
         lines.append("")
 
         slug = _slugify(dish)[:50]
-        filepath = os.path.join(homemade_dir, f"{today} {slug}.md")
+        filepath = os.path.join(homemade_dir, f"{slug}.md")
         with open(filepath, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
 
