@@ -107,6 +107,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
 .music-label {
@@ -124,6 +125,11 @@
   transition: color 0.08s;
   user-select: none;
   line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .star { font-size: 1.15rem; }
+  .star-rating { gap: 1px; }
 }
 
 .star.filled { color: #f5c518; }
