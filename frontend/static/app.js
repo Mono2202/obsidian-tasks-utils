@@ -93,6 +93,25 @@ function loadingHtml() {
   return '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
 }
 
+function playTapFeedback() {
+  if (navigator.vibrate) navigator.vibrate(10);
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1000, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.06);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.06);
+    setTimeout(() => ctx.close(), 200);
+  } catch (_) {}
+}
+
 function playUndoFeedback() {
   if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
   try {
@@ -144,6 +163,7 @@ let planningLoaded = false;
 let habitsLoaded = false;
 let musicLoaded = false;
 let workoutLoaded = false;
+let foodLoaded = false;
 
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));

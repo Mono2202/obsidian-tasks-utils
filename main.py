@@ -12,6 +12,7 @@ from backend.routes.tasks import create_tasks_blueprint
 from backend.routes.habits import create_habits_blueprint
 from backend.routes.music import create_music_blueprint
 from backend.routes.workout import create_workout_blueprint
+from backend.routes.food import create_food_blueprint
 from obsidian import Vault
 
 FETCH_TASKS_INTERVAL = 30
@@ -69,6 +70,7 @@ app.register_blueprint(create_tasks_blueprint(vault.tasks, tasks_store, logger))
 app.register_blueprint(create_habits_blueprint(vault.habits, logger))
 app.register_blueprint(create_music_blueprint(_spotify, vault.music, logger, _spotify_error))
 app.register_blueprint(create_workout_blueprint(vault.workout, logger))
+app.register_blueprint(create_food_blueprint(vault.food, logger))
 
 def main():
     app.run(host=os.getenv("HOST"), port=int(os.getenv("PORT")), debug=False)

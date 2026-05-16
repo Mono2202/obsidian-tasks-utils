@@ -1,0 +1,55 @@
+<div class="tab-panel" id="tab-food">
+  <div class="food-container">
+    <div class="card food-card">
+
+      <label class="food-photo-area" for="food-photo-input">
+        <img id="food-photo-preview" class="food-photo-img" style="display:none" alt="Meal photo" />
+        <div id="food-photo-placeholder" class="food-photo-placeholder">
+          <span class="food-photo-icon">📷</span>
+          <span>Tap to add photo</span>
+        </div>
+        <span id="food-photo-change" class="food-photo-change" style="display:none">Change</span>
+      </label>
+      <input type="file" id="food-photo-input" accept="image/*" style="display:none"
+             onchange="foodPhotoSelected(this)" />
+
+      <div class="food-mode-toggle">
+        <button class="food-mode-btn active" id="food-mode-btn-restaurant"
+                onclick="setFoodMode('restaurant')">🍽️ Restaurant</button>
+        <button class="food-mode-btn" id="food-mode-btn-homemade"
+                onclick="setFoodMode('homemade')">🏠 Home-made</button>
+      </div>
+
+      <div id="food-restaurant-field" class="form-row">
+        <input type="text" id="food-restaurant" placeholder="Restaurant name" />
+      </div>
+
+      <div class="form-row">
+        <input type="text" id="food-dish" placeholder="Dish / meal name" />
+      </div>
+
+      <div class="food-meta-row">
+        <div class="food-meta-group">
+          <span class="food-label">Rating</span>
+          <div class="food-stars" id="food-stars">
+            <span onclick="setFoodRating(1)">★</span>
+            <span onclick="setFoodRating(2)">★</span>
+            <span onclick="setFoodRating(3)">★</span>
+            <span onclick="setFoodRating(4)">★</span>
+            <span onclick="setFoodRating(5)">★</span>
+          </div>
+        </div>
+        <div class="food-meta-group">
+          <span class="food-label">Cost</span>
+          <input type="number" id="food-cost" placeholder="Optional" step="0.01" min="0" />
+        </div>
+      </div>
+
+      <textarea id="food-notes" class="food-notes" placeholder="Notes..." rows="3"></textarea>
+
+      <button class="food-submit-btn" id="food-submit-btn" onclick="submitFoodReview()">Save Review</button>
+      <div class="feedback" id="food-feedback"></div>
+
+    </div>
+  </div>
+</div>
