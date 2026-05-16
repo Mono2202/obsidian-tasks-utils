@@ -33,6 +33,32 @@ class Music:
     # Public API
     # ------------------------------------------------------------------ #
 
+    def migrate_rating_format(self) -> int:
+        _old = re.compile(r'^(\d+)/10$')
+        changed = 0
+        for path in self._root.rglob("*.md"):
+            content = path.read_text(encoding="utf-8")
+            lines = content.splitlines()
+            modified = False
+            for i, line in enumerate(lines):
+                if not line.startswith("|"):
+                    continue
+                cells = self._parse_row(line)
+                if len(cells) < 3:
+                    continue
+                m = _old.match(cells[2])
+                if not m:
+                    continue
+                rating = int(m.group(1))
+                cells[2] = f"{self._stars(rating)} ({rating}/10)"
+                lines[i] = self._build_row(cells)
+                modified = True
+            if modified:
+                path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+                logger.info(f"Migrated: {path.name}")
+                changed += 1
+        return changed
+
     def upsert_review(self, track: TrackInfo, rating: int, notes: str, album_mode: bool = True) -> None:
         if album_mode:
             path = self._file_path(track)

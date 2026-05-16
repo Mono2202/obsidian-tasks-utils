@@ -79,7 +79,8 @@
 .food-meta-row {
   display: flex;
   align-items: center;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 12px 20px;
 }
 
 .food-meta-group {
@@ -94,15 +95,6 @@
   white-space: nowrap;
 }
 
-.food-stars {
-  display: flex;
-  gap: 1px;
-  font-size: 1.25rem;
-  cursor: pointer;
-  user-select: none;
-}
-.food-stars span { color: var(--border); transition: color 0.1s; line-height: 1; }
-.food-stars span.active { color: var(--accent); }
 
 #food-cost { width: 90px; }
 
@@ -136,7 +128,3 @@
 .food-submit-btn:hover { background: var(--accent-hover); }
 .food-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-@media (max-width: 480px) {
-  .food-stars { font-size: 1.3rem; }
-  .food-meta-row { flex-direction: column; align-items: flex-start; gap: 10px; }
-}

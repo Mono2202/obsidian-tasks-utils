@@ -278,3 +278,9 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
   .planning-row { flex-direction: column; }
   .planning-row > .card { width: 100%; }
 }
+
+@media (max-width: 480px) {
+  .tabs { gap: 3px; }
+  .tab-btn { flex: 1; padding: 6px 0; display: flex; justify-content: center; }
+  .tab-btn img, .header-btn img { width: 20px; height: 20px; }
+}

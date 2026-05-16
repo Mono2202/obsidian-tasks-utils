@@ -2,6 +2,7 @@ let _foodRating = 0;
 let _foodMode = 'restaurant';
 
 async function loadFood() {
+  _initFoodStarRating();
   try {
     const res = await fetch('/food/restaurants');
     const data = await res.json();
@@ -17,9 +18,33 @@ function setFoodMode(mode) {
   document.getElementById('food-restaurant-field').style.display = mode === 'restaurant' ? '' : 'none';
 }
 
-function setFoodRating(n) {
-  _foodRating = n;
-  document.querySelectorAll('#food-stars span').forEach((s, i) => s.classList.toggle('active', i < n));
+function _initFoodStarRating() {
+  const container = document.getElementById('food-star-rating');
+  container.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const star = document.createElement('span');
+    star.className = 'star';
+    star.textContent = '★';
+    star.addEventListener('click', () => _setFoodRating(i));
+    star.addEventListener('mouseenter', () => _highlightFoodStars(i, true));
+    star.addEventListener('mouseleave', () => _highlightFoodStars(_foodRating, false));
+    container.appendChild(star);
+  }
+  _highlightFoodStars(0, false);
+}
+
+function _highlightFoodStars(n, isHover) {
+  document.querySelectorAll('#food-star-rating .star').forEach((s, idx) => {
+    s.classList.toggle('filled', idx < _foodRating && !isHover);
+    s.classList.toggle('hover', idx < n);
+  });
+  const label = n > 0 ? `${n}/10` : (_foodRating > 0 ? `${_foodRating}/10` : '-/10');
+  document.getElementById('food-rating-text').textContent = label;
+}
+
+function _setFoodRating(n) {
+  _foodRating = (_foodRating === n) ? 0 : n;
+  _highlightFoodStars(_foodRating, false);
 }
 
 function foodPhotoSelected(input) {
@@ -99,7 +124,7 @@ function _resetFoodForm() {
   document.getElementById('food-cost').value = '';
   document.getElementById('food-notes').value = '';
   _foodRating = 0;
-  document.querySelectorAll('#food-stars span').forEach(s => s.classList.remove('active'));
+  _highlightFoodStars(0, false);
   const preview = document.getElementById('food-photo-preview');
   preview.style.display = 'none';
   preview.src = '';
