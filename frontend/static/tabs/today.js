@@ -34,9 +34,8 @@ async function loadTasks() {
       const overdueBadge = overdue ? `<span class="badge overdue">Overdue · ${overdueLabel}</span>` : '';
       const startedBadge = started ? `<span class="badge started">Started · ${t.start}</span>` : '';
       const timeBadge = t.time ? `<span class="badge time">@ ${t.time}</span>` : '';
-      const fileHref = obsidianFileHref(t.rel_path);
-      const fileBadge = fileHref
-        ? `<a href="${fileHref}" class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</a>`
+      const fileBadge = t.rel_path
+        ? `<span class="badge file" style="${folderBadgeStyle(t.top_folder)};cursor:pointer" data-path="${escapeHtml(t.rel_path)}" onclick="openObsidianFile(this.dataset.path)">${escapeHtml(t.file)}</span>`
         : `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
       const cls = overdue ? ' overdue' : started ? ' started' : '';
       const checkbox = t.completable

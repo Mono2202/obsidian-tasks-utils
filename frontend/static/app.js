@@ -31,6 +31,11 @@ function obsidianFileHref(relPath) {
   return `obsidian://open?file=${encodeURIComponent(relPath)}`;
 }
 
+function openObsidianFile(relPath) {
+  if (!relPath) return;
+  window.location.href = obsidianFileHref(relPath);
+}
+
 // ── Config ───────────────────────────────────────────────────────────────────
 
 const FOLDER_COLORS = {

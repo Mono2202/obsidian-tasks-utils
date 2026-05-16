@@ -17,9 +17,9 @@
       <div class="date" id="date-label"></div>
     </div>
     <div class="header-actions">
-      <a href="{{ daily_note_uri }}" class="header-btn" title="Open today's note">
+      <button class="header-btn" onclick="window.location.href='{{ daily_note_uri }}'" title="Open today's note">
         <img src="/assets/daily-note.svg" alt="Today's note" />
-      </a>
+      </button>
       <button class="header-btn" onclick="toggleTheme()" id="header-btn-btn">
         <img id="theme-icon" src="/assets/dark-theme.svg" alt="Toggle theme" />
       </button>
