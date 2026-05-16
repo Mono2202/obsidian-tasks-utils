@@ -1,9 +1,17 @@
 let _foodRating = 0;
 let _foodMode = 'restaurant';
 
+async function loadFood() {
+  try {
+    const res = await fetch('/food/restaurants');
+    const data = await res.json();
+    const dl = document.getElementById('food-restaurant-list');
+    dl.innerHTML = data.restaurants.map(r => `<option value="${escapeHtml(r)}"></option>`).join('');
+  } catch (_) {}
+}
+
 function setFoodMode(mode) {
   _foodMode = mode;
-  playTapFeedback();
   document.getElementById('food-mode-btn-restaurant').classList.toggle('active', mode === 'restaurant');
   document.getElementById('food-mode-btn-homemade').classList.toggle('active', mode === 'homemade');
   document.getElementById('food-restaurant-field').style.display = mode === 'restaurant' ? '' : 'none';
@@ -11,7 +19,6 @@ function setFoodMode(mode) {
 
 function setFoodRating(n) {
   _foodRating = n;
-  playTapFeedback();
   document.querySelectorAll('#food-stars span').forEach((s, i) => s.classList.toggle('active', i < n));
 }
 
@@ -74,6 +81,7 @@ async function submitFoodReview() {
       feedback.className = 'feedback ok';
       feedback.textContent = 'Review saved!';
       _resetFoodForm();
+      if (_foodMode === 'restaurant') loadFood();
     } else {
       feedback.className = 'feedback err';
       feedback.textContent = data.error || 'Failed to save.';

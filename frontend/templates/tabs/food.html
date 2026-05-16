@@ -21,7 +21,9 @@
       </div>
 
       <div id="food-restaurant-field" class="form-row">
-        <input type="text" id="food-restaurant" placeholder="Restaurant name" />
+        <input type="text" id="food-restaurant" placeholder="Restaurant name"
+               list="food-restaurant-list" autocomplete="off" />
+        <datalist id="food-restaurant-list"></datalist>
       </div>
 
       <div class="form-row">
@@ -37,6 +39,11 @@
             <span onclick="setFoodRating(3)">★</span>
             <span onclick="setFoodRating(4)">★</span>
             <span onclick="setFoodRating(5)">★</span>
+            <span onclick="setFoodRating(6)">★</span>
+            <span onclick="setFoodRating(7)">★</span>
+            <span onclick="setFoodRating(8)">★</span>
+            <span onclick="setFoodRating(9)">★</span>
+            <span onclick="setFoodRating(10)">★</span>
           </div>
         </div>
         <div class="food-meta-group">

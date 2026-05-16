@@ -193,4 +193,8 @@ function switchTab(tab) {
     loadWorkoutTab();
     workoutLoaded = true;
   }
+  if (tab === 'food' && !foodLoaded) {
+    loadFood();
+    foodLoaded = true;
+  }
 }

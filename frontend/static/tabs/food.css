@@ -96,8 +96,8 @@
 
 .food-stars {
   display: flex;
-  gap: 2px;
-  font-size: 1.5rem;
+  gap: 1px;
+  font-size: 1.25rem;
   cursor: pointer;
   user-select: none;
 }
