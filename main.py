@@ -1,6 +1,7 @@
 import os
 import subprocess
 from datetime import date
+from urllib.parse import quote
 import dotenv
 from flask import Flask, render_template, send_from_directory
 
@@ -58,7 +59,11 @@ def index():
     if _daily_open_date != today:
         subprocess.Popen(['obsidian', 'daily:read'])
         _daily_open_date = today
-    return render_template('index.html')
+    daily_folder = os.getenv("OBSIDIAN_DAILY_PATH", "")
+    today_str = today.strftime("%Y-%m-%d")
+    daily_rel = f"{daily_folder}/{today_str}.md" if daily_folder else f"{today_str}.md"
+    daily_note_uri = f"obsidian://open?file={quote(daily_rel)}"
+    return render_template('index.html', daily_note_uri=daily_note_uri)
 
 app.register_blueprint(create_tasks_blueprint(vault.tasks, tasks_store, logger))
 app.register_blueprint(create_habits_blueprint(vault.habits, logger))

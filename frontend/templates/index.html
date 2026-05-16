@@ -16,9 +16,14 @@
       <h1>MonoVault Board</h1>
       <div class="date" id="date-label"></div>
     </div>
-    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn">
-      <img id="theme-icon" src="/assets/dark-theme.svg" alt="Toggle theme" />
-    </button>
+    <div class="header-actions">
+      <a href="{{ daily_note_uri }}" class="header-btn" title="Open today's note">
+        <img src="/assets/daily-note.svg" alt="Today's note" />
+      </a>
+      <button class="header-btn" onclick="toggleTheme()" id="header-btn-btn">
+        <img id="theme-icon" src="/assets/dark-theme.svg" alt="Toggle theme" />
+      </button>
+    </div>
   </header>
 
   <div class="main">
