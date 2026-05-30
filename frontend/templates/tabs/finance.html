@@ -22,12 +22,14 @@
           <select id="finance-category" required>
             <option value="">Category</option>
             <option>Food</option>
+            <option>Groceries</option>
             <option>Transport</option>
             <option>Shopping</option>
             <option>Entertainment</option>
             <option>Health</option>
             <option>Housing</option>
             <option>Utilities</option>
+            <option>Gifts</option>
             <option>Other</option>
           </select>
         </div>
@@ -41,5 +43,13 @@
   <div class="card">
     <h2>Entries</h2>
     <div id="finance-entries"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="finance-subs-header">
+      <h2>Subscriptions</h2>
+      <span id="finance-subs-total" class="finance-subs-total"></span>
+    </div>
+    <div id="finance-subscriptions"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
   </div>
 </div>

@@ -1,11 +1,13 @@
 const FINANCE_COLORS = {
   'Food':          '#ff6384',
+  'Groceries':     '#ff8c42',
   'Transport':     '#36a2eb',
   'Shopping':      '#ff9f40',
   'Entertainment': '#9966ff',
   'Health':        '#4bc0c0',
   'Housing':       '#ffcd56',
   'Utilities':     '#c9cbcf',
+  'Gifts':         '#f48fb1',
   'Other':         '#8ac926',
 };
 
@@ -15,6 +17,7 @@ function _financeColor(cat) {
 
 let _financeMonth = new Date().toISOString().slice(0, 7);
 let _financeEntries = [];
+let _financeSubscriptions = [];
 
 function financeChangeMonth(delta) {
   const [y, m] = _financeMonth.split('-').map(Number);
@@ -91,14 +94,20 @@ function _renderFinanceLegend(totals, grandTotal) {
 
 // ── Entries list ──────────────────────────────────────────────────────────────
 
+function _isSubEntry(entry) {
+  return _financeSubscriptions.some(
+    s => s.name === entry.title && s.category === entry.category && s.amount === entry.amount
+  );
+}
+
 function _renderFinanceEntries(entries) {
   const el = document.getElementById('finance-entries');
-  if (!entries.length) {
+  const manual = entries.map((e, i) => ({ ...e, origIdx: i })).filter(e => !_isSubEntry(e));
+  if (!manual.length) {
     el.innerHTML = '<div class="empty-state">No entries this month.</div>';
     return;
   }
-  el.innerHTML = [...entries].reverse().map((e, revIdx) => {
-    const origIdx = entries.length - 1 - revIdx;
+  el.innerHTML = [...manual].reverse().map(e => {
     const d = new Date(e.date + 'T12:00:00');
     const dateStr = d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
     return `<div class="finance-entry-row">
@@ -107,9 +116,32 @@ function _renderFinanceEntries(entries) {
       <span class="finance-entry-cat">${escapeHtml(e.category)}</span>
       <span class="finance-entry-title">${escapeHtml(e.title)}</span>
       <span class="finance-entry-amt">${e.amount.toFixed(2)}</span>
-      <button class="finance-delete-btn" onclick="deleteFinanceEntry(${origIdx})" title="Remove">&times;</button>
+      <button class="finance-delete-btn" onclick="deleteFinanceEntry(${e.origIdx})" title="Remove">&times;</button>
     </div>`;
   }).join('');
+}
+
+// ── Subscriptions list ────────────────────────────────────────────────────────
+
+function _renderFinanceSubscriptions() {
+  const el = document.getElementById('finance-subscriptions');
+  const totalEl = document.getElementById('finance-subs-total');
+  if (!_financeSubscriptions.length) {
+    el.innerHTML = '<div class="empty-state">No subscriptions configured.</div>';
+    totalEl.textContent = '';
+    return;
+  }
+  const total = _financeSubscriptions.reduce((s, sub) => s + sub.amount, 0);
+  totalEl.textContent = `${total.toFixed(2)} / mo`;
+  el.innerHTML = _financeSubscriptions.map(sub => `
+    <div class="finance-sub-row">
+      <span class="finance-entry-dot" style="background:${_financeColor(sub.category)}"></span>
+      <span class="finance-sub-day">Day ${sub.day}</span>
+      <span class="finance-sub-cat">${escapeHtml(sub.category)}</span>
+      <span class="finance-sub-name">${escapeHtml(sub.name)}</span>
+      <span class="finance-entry-amt">${sub.amount.toFixed(2)}</span>
+    </div>
+  `).join('');
 }
 
 // ── Data helpers ──────────────────────────────────────────────────────────────
@@ -141,9 +173,23 @@ async function loadFinanceEntries() {
   }
 }
 
+async function _loadFinanceSubscriptions() {
+  try {
+    const res = await fetch('/finance/subscriptions');
+    const data = await res.json();
+    _financeSubscriptions = data.subscriptions || [];
+    _renderFinanceSubscriptions();
+    _renderFinanceEntries(_financeEntries);  // re-render to apply sub badges
+  } catch (_) {
+    document.getElementById('finance-subscriptions').innerHTML =
+      '<div class="empty-state" style="color:var(--danger)">Failed to load.</div>';
+  }
+}
+
 function loadFinance() {
   _updateFinanceMonthLabel();
   loadFinanceEntries();
+  _loadFinanceSubscriptions();
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
