@@ -127,7 +127,15 @@ function renderWorkoutHistory(history) {
     const cards = _groupExercises(session.exercises).map(group => {
       const rows = _mergeIdenticalSets(group.sets).map(sg => {
         const totalSets = sg.items.reduce((acc, s) => acc + s.sets, 0);
-        return `<div class="workout-set-row"><span class="workout-set-stats">${_exStats({ ...sg.items[0], sets: totalSets })}</span></div>`;
+        const s = sg.items[0];
+        return `<div class="workout-set-row workout-history-row-clickable"
+          data-name="${escapeHtml(group.name)}"
+          data-sets="${s.sets}"
+          data-reps="${s.reps}"
+          data-weight="${escapeHtml(s.weight || '')}"
+          onclick="_fillFormFromHistory(this)">
+          <span class="workout-set-stats">${_exStats({ ...s, sets: totalSets })}</span>
+        </div>`;
       }).join('');
       return `<div class="workout-history-ex">
         <span class="workout-history-ex-name">${escapeHtml(group.name)}</span>
@@ -168,6 +176,15 @@ async function addExercise(e) {
   } catch (_) {
     feedback.textContent = 'Request failed.';
   }
+}
+
+function _fillFormFromHistory(el) {
+  document.getElementById('workout-name').value = el.dataset.name;
+  document.getElementById('workout-sets').value = el.dataset.sets;
+  document.getElementById('workout-reps').value = el.dataset.reps;
+  document.getElementById('workout-weight').value = el.dataset.weight;
+  document.getElementById('workout-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('workout-sets').focus();
 }
 
 function clearWorkoutForm() {
