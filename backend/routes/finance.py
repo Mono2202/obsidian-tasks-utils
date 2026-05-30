@@ -17,6 +17,16 @@ def create_finance_blueprint(finance, logger):
             logger.error(f"Finance get_entries error: {e}")
             return jsonify({'error': str(e)}), 500
 
+    @bp.route('/finance/subscriptions', methods=['GET'])
+    def get_subscriptions():
+        if finance is None:
+            return jsonify({'error': 'Finance not configured'}), 503
+        try:
+            return jsonify({'subscriptions': finance.get_subscriptions()})
+        except Exception as e:
+            logger.error(f"Finance get_subscriptions error: {e}")
+            return jsonify({'error': str(e)}), 500
+
     @bp.route('/finance/add', methods=['POST'])
     def add_entry():
         if finance is None:

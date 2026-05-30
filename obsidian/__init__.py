@@ -42,4 +42,5 @@ class Vault:
         ) if os.getenv("OBSIDIAN_FOOD_PATH") else None
         self.finance = Finance(
             finance_path=abspath(os.getenv("OBSIDIAN_FINANCE_PATH", "")),
+            subscriptions_path=abspath(os.getenv("OBSIDIAN_SUBSCRIPTIONS_PATH", "")),
         ) if os.getenv("OBSIDIAN_FINANCE_PATH") else None

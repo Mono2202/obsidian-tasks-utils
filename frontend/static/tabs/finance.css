@@ -166,6 +166,56 @@
 }
 .finance-delete-btn:hover { color: var(--danger); }
 
+/* Subscriptions card */
+.finance-subs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.finance-subs-total {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.finance-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  min-width: 0;
+}
+
+.finance-sub-day {
+  color: var(--text-muted);
+  min-width: 44px;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+}
+
+.finance-sub-cat {
+  color: var(--text-muted);
+  min-width: 72px;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+}
+
+.finance-sub-name {
+  flex: 1;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
 #tab-finance .tasks-row { align-items: stretch; }
 
 @media (max-width: 700px) {
