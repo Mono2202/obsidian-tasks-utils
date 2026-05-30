@@ -46,6 +46,14 @@
 .workout-suggestion-item:only-child  { border-radius: 8px; }
 .workout-suggestion-item:hover { background: var(--input-bg); }
 
+.workout-side-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 @media (max-width: 700px) {
   .workout-form-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -57,10 +65,8 @@
     flex-direction: column;
   }
 
-  #tab-workout .tasks-row .card {
-    flex: unset;
-    width: 100%;
-  }
+  #tab-workout .tasks-row .card,
+  .workout-side-col { width: 100%; }
 }
 
 .workout-btn-group {
@@ -179,6 +185,43 @@
 
 .workout-history-ex .workout-set-rows { gap: 2px; }
 .workout-history-ex .workout-set-stats { font-size: 0.75rem; color: var(--text-muted); }
+
+.workout-record-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.workout-record-row:hover { border-color: var(--accent); }
+
+.workout-record-name {
+  flex: 1;
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.workout-record-weight {
+  color: #a98ef5;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.workout-record-date {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
 
 .workout-history-row-clickable {
   cursor: pointer;
