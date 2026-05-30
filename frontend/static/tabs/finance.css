@@ -82,6 +82,9 @@
   gap: 10px;
 }
 
+.finance-form input,
+.finance-form select { width: 100%; }
+
 .finance-submit-btn {
   background: var(--accent);
   color: #fff;
@@ -162,6 +165,8 @@
   flex-shrink: 0;
 }
 .finance-delete-btn:hover { color: var(--danger); }
+
+#tab-finance .tasks-row { align-items: stretch; }
 
 @media (max-width: 700px) {
   #tab-finance .tasks-row { flex-direction: column; }
