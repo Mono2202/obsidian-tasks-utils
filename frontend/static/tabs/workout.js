@@ -169,7 +169,9 @@ async function addExercise(e) {
       const newWeightNum = _parseWeightNum(weight);
       const existing = _workoutRecords[name];
       const isNewPR = newWeightNum !== null && (
-        !existing || newWeightNum > existing.weight_num
+        !existing
+        || newWeightNum > existing.weight_num
+        || (newWeightNum === existing.weight_num && reps > existing.reps)
       );
 
       playCompletionFeedback();
@@ -243,20 +245,26 @@ function _renderWorkoutRecords(records) {
   el.innerHTML = records.map(r => {
     const d = new Date(r.date + 'T12:00:00');
     const dateStr = d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-    return `<div class="workout-record-row"
-      data-name="${escapeHtml(r.name)}"
-      data-weight="${escapeHtml(r.weight)}"
-      onclick="_fillFormFromRecord(this)">
-      <span class="workout-record-name">${escapeHtml(r.name)}</span>
-      <span class="workout-record-weight">${escapeHtml(r.weight)}</span>
-      <span class="workout-record-date">${dateStr}</span>
+    return `<div class="workout-record-wrap">
+      <div class="workout-record-row"
+        data-name="${escapeHtml(r.name)}"
+        data-weight="${escapeHtml(r.weight)}"
+        data-reps="${r.reps}"
+        onclick="_toggleRecordProgress(this)">
+        <span class="workout-record-name">${escapeHtml(r.name)}</span>
+        <span class="workout-record-weight">${escapeHtml(r.weight)} <span class="ex-x">&times;</span><span class="ex-reps">${r.reps}</span></span>
+        <span class="workout-record-date">${dateStr}</span>
+        <button class="workout-record-use-btn" title="Fill form"
+          onclick="event.stopPropagation(); _useRecordRow(this.closest('.workout-record-row'))">↑</button>
+      </div>
+      <div class="workout-progress-wrap" style="display:none"></div>
     </div>`;
   }).join('');
 }
 
-function _fillFormFromRecord(el) {
-  const name = el.dataset.name;
-  const weight = el.dataset.weight;
+function _useRecordRow(rowEl) {
+  const name = rowEl.dataset.name;
+  const weight = rowEl.dataset.weight;
   document.getElementById('workout-name').value = name;
   document.getElementById('workout-weight').value = weight;
   const suggestion = _exerciseSuggestions.find(e => e.name === name);
@@ -266,6 +274,97 @@ function _fillFormFromRecord(el) {
   }
   document.getElementById('workout-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   document.getElementById('workout-sets').focus();
+}
+
+function _toggleRecordProgress(rowEl) {
+  const wrap = rowEl.nextElementSibling;
+  const isOpen = wrap.style.display !== 'none';
+  if (isOpen) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+  if (wrap.dataset.loaded) return;
+  wrap.dataset.loaded = '1';
+  const name = rowEl.dataset.name;
+  const weight = rowEl.dataset.weight;
+  const reps = rowEl.dataset.reps;
+  wrap.innerHTML = '<div class="empty-state" style="padding:8px"><span class="spinner"></span></div>';
+  fetch(`/workout/progress?exercise=${encodeURIComponent(name)}`)
+    .then(r => r.json())
+    .then(data => {
+      _renderProgressChart(data.progress || [], wrap);
+    })
+    .catch(() => { wrap.innerHTML = '<div class="empty-state" style="color:var(--danger);padding:8px">Failed to load.</div>'; });
+}
+
+function _renderProgressChart(progress, container) {
+  if (!progress.length) {
+    container.innerHTML = '<div class="empty-state" style="padding:8px">No data.</div>';
+    return;
+  }
+
+  const W = 400, H = 160;
+  const PAD = { top: 10, right: 12, bottom: 32, left: 42 };
+  const plotW = W - PAD.left - PAD.right;
+  const plotH = H - PAD.top - PAD.bottom;
+
+  const n = progress.length;
+  const weights = progress.map(p => p.weight_num);
+  const minW = Math.min(...weights);
+  const maxW = Math.max(...weights);
+  const wRange = maxW - minW || 1;
+
+  const xScale = i => PAD.left + (n > 1 ? (i / (n - 1)) * plotW : plotW / 2);
+  const yScale = w => PAD.top + plotH - ((w - minW) / wRange) * plotH;
+
+  const parts = [];
+
+  // Y grid + labels
+  for (let i = 0; i <= 4; i++) {
+    const w = minW + (wRange * i / 4);
+    const y = yScale(w);
+    parts.push(`<line x1="${PAD.left}" y1="${y.toFixed(1)}" x2="${PAD.left + plotW}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="0.5"/>`);
+    parts.push(`<text x="${PAD.left - 5}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--text-muted)" font-family="inherit">${w.toFixed(0)}</text>`);
+  }
+
+  // Axes
+  parts.push(`<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`);
+  parts.push(`<line x1="${PAD.left}" y1="${PAD.top + plotH}" x2="${PAD.left + plotW}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="1"/>`);
+
+  // Day separators + x labels (show date at first set of each new day)
+  let prevDate = null;
+  progress.forEach((p, i) => {
+    if (p.date === prevDate) return;
+    const x = xScale(i);
+    if (prevDate !== null) {
+      parts.push(`<line x1="${x.toFixed(1)}" y1="${PAD.top}" x2="${x.toFixed(1)}" y2="${PAD.top + plotH}" stroke="var(--border)" stroke-width="0.8" stroke-dasharray="3,3"/>`);
+    }
+    const [, m_, day_] = p.date.split('-');
+    parts.push(`<text x="${x.toFixed(1)}" y="${PAD.top + plotH + 14}" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="inherit">${day_}.${m_}</text>`);
+    prevDate = p.date;
+  });
+
+  // Connecting line
+  const pts = progress.map((p, i) => `${xScale(i).toFixed(1)},${yScale(p.weight_num).toFixed(1)}`).join(' ');
+  parts.push(`<polyline points="${pts}" fill="none" stroke="#a98ef5" stroke-width="1.5" opacity="0.5"/>`);
+
+  // Dots
+  progress.forEach((p, i) => {
+    const x = xScale(i);
+    const y = yScale(p.weight_num);
+    const [yr_, m_, day_] = p.date.split('-');
+    parts.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#a98ef5" opacity="0.9">
+      <title>${day_}.${m_}.${yr_}  ${p.weight} × ${p.reps}</title>
+    </circle>`);
+  });
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block;overflow:visible">${parts.join('')}</svg>`;
+  const chartEl = document.createElement('div');
+  chartEl.className = 'workout-progress-chart';
+  chartEl.innerHTML = svg;
+  container.innerHTML = '';
+  container.appendChild(chartEl);
 }
 
 function _parseWeightNum(w) {

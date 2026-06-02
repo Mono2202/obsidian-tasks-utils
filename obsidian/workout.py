@@ -146,11 +146,18 @@ class Workout(ObsidianBase):
                 if w_num is None:
                     continue
                 name = ex['name']
-                if name not in records or w_num > records[name]['weight_num']:
+                existing = records.get(name)
+                is_pr = (
+                    not existing
+                    or w_num > existing['weight_num']
+                    or (w_num == existing['weight_num'] and ex['reps'] > existing['reps'])
+                )
+                if is_pr:
                     records[name] = {
                         'name': name,
                         'weight': ex['weight'],
                         'weight_num': w_num,
+                        'reps': ex['reps'],
                         'date': date_str,
                     }
         return sorted(records.values(), key=lambda r: r['name'].lower())
@@ -161,6 +168,36 @@ class Workout(ObsidianBase):
             return None
         m = re.search(r'[\d.]+', weight)
         return float(m.group()) if m else None
+
+    def get_exercise_progress(self, exercise_name: str) -> list:
+        progress = []
+        if not os.path.isdir(self._daily_notes_dir):
+            return progress
+        date_re = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+        for filename in sorted(os.listdir(self._daily_notes_dir)):
+            if not filename.endswith('.md'):
+                continue
+            date_str = filename[:-3]
+            if not date_re.match(date_str):
+                continue
+            try:
+                exercises = self.fetch_workout(date_str)
+            except Exception:
+                continue
+            for ex in exercises:
+                if ex['name'] != exercise_name:
+                    continue
+                w_num = self._parse_weight_num(ex['weight'])
+                if w_num is None:
+                    continue
+                progress.append({
+                    'date': date_str,
+                    'weight': ex['weight'],
+                    'weight_num': w_num,
+                    'sets': ex['sets'],
+                    'reps': ex['reps'],
+                })
+        return progress
 
     def fetch_exercise_suggestions(self, days=60):
         seen = {}
