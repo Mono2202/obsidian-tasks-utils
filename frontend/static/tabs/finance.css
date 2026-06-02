@@ -220,4 +220,6 @@
 
 @media (max-width: 700px) {
   #tab-finance .tasks-row { flex-direction: column; }
+  .finance-entry-cat,
+  .finance-sub-cat { display: none; }
 }
