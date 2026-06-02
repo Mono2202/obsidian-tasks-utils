@@ -18,10 +18,11 @@ class Tasks(ObsidianBase):
     SCHED_DATE_PATTERN = re.compile(r"⏳\s*(\d{4}-\d{2}-\d{2})")
     TIME_PATTERN = re.compile(r"(?:@(\d{2}:\d{2})|(\d{2}:\d{2})@)")
     START_DATE_PATTERN = re.compile(r"🛫\s*(\d{4}-\d{2}-\d{2})")
-    RECUR_PATTERN = re.compile(r"🔁\s*(every week|every 2 weeks|every 3 weeks|every month)")
+    RECUR_PATTERN = re.compile(r"🔁\s*(every 2 days|every week|every 2 weeks|every 3 weeks|every month)")
     ANY_RECUR_PATTERN = re.compile(r"🔁")
 
     RECUR_DELTAS = {
+        "every 2 days":  lambda: timedelta(days=2),
         "every week":    lambda: timedelta(weeks=1),
         "every 2 weeks": lambda: timedelta(weeks=2),
         "every 3 weeks": lambda: timedelta(weeks=3),
@@ -76,6 +77,7 @@ class Tasks(ObsidianBase):
                             "scheduled": sched_date,
                             "start": start_date,
                             "time": task_time,
+                            "recur": has_supported_recur.group(1) if has_supported_recur else None,
                             "raw_line": line,
                             "completable": completable,
                         }

@@ -56,4 +56,13 @@ def create_workout_blueprint(obsidian, logger):
         exercises = obsidian.fetch_exercise_suggestions()
         return jsonify({'exercises': exercises})
 
+    @bp.route('/workout/records', methods=['GET'])
+    def workout_records():
+        try:
+            records = obsidian.get_personal_records()
+            return jsonify({'records': records})
+        except Exception as e:
+            logger.error(f"Failed to fetch records: {e}")
+            return jsonify({'error': str(e)}), 500
+
     return bp

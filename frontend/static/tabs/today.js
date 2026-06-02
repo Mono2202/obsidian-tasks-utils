@@ -1,3 +1,9 @@
+function _fmtDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
 async function loadTasks() {
   const list = document.getElementById('tasks-list');
   list.innerHTML = loadingHtml();
@@ -30,14 +36,18 @@ async function loadTasks() {
       const text = cleanTaskText(t.task);
       const overdue = isOverdue(t);
       const started = !overdue && t.start && t.start <= today;
+      const scheduledToday = !overdue && t.scheduled === today;
       const overdueLabel = overdue ? (t.due && t.due < today ? t.due : t.scheduled) : null;
-      const overdueBadge = overdue ? `<span class="badge overdue">Overdue · ${overdueLabel}</span>` : '';
-      const startedBadge = started ? `<span class="badge started">Started · ${t.start}</span>` : '';
+      const overdueBadge = overdue ? `<span class="badge overdue">Overdue · ${_fmtDate(overdueLabel)}</span>` : '';
+      const startedBadge = started ? `<span class="badge started">🛫 ${_fmtDate(t.start)}</span>` : '';
       const timeBadge = t.time ? `<span class="badge time">@ ${t.time}</span>` : '';
+      const dueBadge = !overdue && t.due ? `<span class="badge due">📅 ${_fmtDate(t.due)}</span>` : '';
+      const schedBadge = !overdue && t.scheduled ? `<span class="badge scheduled">⏳ ${_fmtDate(t.scheduled)}</span>` : '';
+      const recurBadge = t.recur ? `<span class="badge recur">🔁 ${t.recur}</span>` : '';
       const fileBadge = t.rel_path
         ? `<span class="badge file" style="${folderBadgeStyle(t.top_folder)};cursor:pointer" data-path="${escapeHtml(t.rel_path)}" onclick="openObsidianFile(this.dataset.path)">${escapeHtml(t.file)}</span>`
         : `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
-      const cls = overdue ? ' overdue' : started ? ' started' : '';
+      const cls = overdue ? ' overdue' : scheduledToday ? ' scheduled-today' : started ? ' started' : '';
       const checkbox = t.completable
         ? `<input type="checkbox" class="task-checkbox" onchange="completeTask('${id}', this)" />`
         : `<span class="task-checkbox" title="Unsupported recurrence"></span>`;
@@ -46,7 +56,7 @@ async function loadTasks() {
           ${checkbox}
           <div class="task-body">
             <div class="task-text">${renderText(text)}</div>
-            <div class="task-meta">${overdueBadge}${startedBadge}${timeBadge}${fileBadge}</div>
+            <div class="task-meta">${overdueBadge}${startedBadge}${dueBadge}${schedBadge}${timeBadge}${recurBadge}${fileBadge}</div>
           </div>
         </div>`;
     }).join('');

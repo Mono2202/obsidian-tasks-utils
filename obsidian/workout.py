@@ -126,6 +126,42 @@ class Workout(ObsidianBase):
                 history.append({'date': date_str, 'exercises': exercises})
         return history
 
+    def get_personal_records(self) -> list:
+        records = {}
+        if not os.path.isdir(self._daily_notes_dir):
+            return []
+        date_re = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+        for filename in os.listdir(self._daily_notes_dir):
+            if not filename.endswith('.md'):
+                continue
+            date_str = filename[:-3]
+            if not date_re.match(date_str):
+                continue
+            try:
+                exercises = self.fetch_workout(date_str)
+            except Exception:
+                continue
+            for ex in exercises:
+                w_num = self._parse_weight_num(ex['weight'])
+                if w_num is None:
+                    continue
+                name = ex['name']
+                if name not in records or w_num > records[name]['weight_num']:
+                    records[name] = {
+                        'name': name,
+                        'weight': ex['weight'],
+                        'weight_num': w_num,
+                        'date': date_str,
+                    }
+        return sorted(records.values(), key=lambda r: r['name'].lower())
+
+    @staticmethod
+    def _parse_weight_num(weight: str):
+        if not weight:
+            return None
+        m = re.search(r'[\d.]+', weight)
+        return float(m.group()) if m else None
+
     def fetch_exercise_suggestions(self, days=60):
         seen = {}
         today = date.today()

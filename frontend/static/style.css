@@ -97,7 +97,8 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
 
 .task-item.completing { opacity: 0.4; pointer-events: none; }
 .task-item.overdue { border-color: #5a2020; }
-.task-item.started { border-color: #1a4a6a; }
+.task-item.started { border-color: var(--border); }
+.task-item.scheduled-today { border-color: #c8934a; }
 .task-item.task-done { opacity: 0.55; border-color: var(--success); }
 .task-item.task-done .task-text { text-decoration: line-through; color: var(--text-muted); }
 
@@ -146,6 +147,7 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
 
 .badge {
   font-size: 0.72rem;
+  font-weight: 600;
   padding: 2px 7px;
   border-radius: 20px;
   background: var(--border);
@@ -154,9 +156,12 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
 .badge.time    { background: #3a3060; color: #b8a9ff; border: 1px solid #6a50c055; }
 .badge.file    { background: var(--border); color: var(--text-muted); border: 1px solid var(--border); text-decoration: none; }
 a.badge.file:hover { color: var(--text); cursor: pointer; }
-.badge.overdue { background: #4a1a1a; color: #ff7070; border: 1px solid #ff707055; font-weight: 600; }
-.badge.started { background: #0d2a3a; color: #5bc4f5; border: 1px solid #5bc4f555; font-weight: 600; }
-.badge.context { background: #1a2e1a; color: #6dbf6d; border: 1px solid #6dbf6d55; }
+.badge.overdue { background: #4a1a1a; color: #ff7070; border: 1px solid #ff707055; }
+.badge.started { background: #0d2a3a; color: #5bc4f5; border: 1px solid #5bc4f555; }
+.badge.context   { background: #1a2e1a; color: #6dbf6d; border: 1px solid #6dbf6d55; }
+.badge.due       { background: #2a1f0a; color: #f5c542; border: 1px solid #f5c54255; }
+.badge.scheduled { background: #2a1e0d; color: #c8934a; border: 1px solid #c8934a55; }
+.badge.recur     { background: #1e1a2e; color: #a98ef5; border: 1px solid #a98ef555; }
 
 .empty-state {
   text-align: center;

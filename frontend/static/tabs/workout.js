@@ -1,5 +1,6 @@
 let _exerciseSuggestions = [];
 let _filteredSuggestions = [];
+let _workoutRecords = {};  // name -> { weight, weight_num, date }
 
 async function _loadExerciseSuggestions() {
   try {
@@ -165,10 +166,17 @@ async function addExercise(e) {
     });
     const data = await res.json();
     if (res.ok) {
+      const newWeightNum = _parseWeightNum(weight);
+      const existing = _workoutRecords[name];
+      const isNewPR = newWeightNum !== null && (
+        !existing || newWeightNum > existing.weight_num
+      );
+
       playCompletionFeedback();
       renderWorkoutList(data.exercises);
-      feedback.textContent = '';
+      feedback.textContent = isNewPR ? '🏆 New personal record!' : '';
       _loadExerciseSuggestions();
+      if (isNewPR) loadWorkoutRecords();
       document.getElementById('workout-name').focus();
     } else {
       feedback.textContent = data.error || 'Failed to add.';
@@ -211,9 +219,65 @@ async function deleteExercise(index) {
   } catch (_) {}
 }
 
+async function loadWorkoutRecords() {
+  try {
+    const res = await fetch('/workout/records');
+    const data = await res.json();
+    _workoutRecords = {};
+    for (const r of (data.records || [])) {
+      _workoutRecords[r.name] = r;
+    }
+    _renderWorkoutRecords(data.records || []);
+  } catch (_) {
+    document.getElementById('workout-records').innerHTML =
+      '<div class="empty-state" style="color:var(--danger)">Failed to load.</div>';
+  }
+}
+
+function _renderWorkoutRecords(records) {
+  const el = document.getElementById('workout-records');
+  if (!records.length) {
+    el.innerHTML = '<div class="empty-state">No records yet.</div>';
+    return;
+  }
+  el.innerHTML = records.map(r => {
+    const d = new Date(r.date + 'T12:00:00');
+    const dateStr = d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    return `<div class="workout-record-row"
+      data-name="${escapeHtml(r.name)}"
+      data-weight="${escapeHtml(r.weight)}"
+      onclick="_fillFormFromRecord(this)">
+      <span class="workout-record-name">${escapeHtml(r.name)}</span>
+      <span class="workout-record-weight">${escapeHtml(r.weight)}</span>
+      <span class="workout-record-date">${dateStr}</span>
+    </div>`;
+  }).join('');
+}
+
+function _fillFormFromRecord(el) {
+  const name = el.dataset.name;
+  const weight = el.dataset.weight;
+  document.getElementById('workout-name').value = name;
+  document.getElementById('workout-weight').value = weight;
+  const suggestion = _exerciseSuggestions.find(e => e.name === name);
+  if (suggestion) {
+    document.getElementById('workout-sets').value = suggestion.sets;
+    document.getElementById('workout-reps').value = suggestion.reps;
+  }
+  document.getElementById('workout-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('workout-sets').focus();
+}
+
+function _parseWeightNum(w) {
+  if (!w) return null;
+  const m = w.match(/[\d.]+/);
+  return m ? parseFloat(m[0]) : null;
+}
+
 function loadWorkoutTab() {
   loadWorkout();
   loadWorkoutHistory();
+  loadWorkoutRecords();
   _loadExerciseSuggestions();
   const nameInput = document.getElementById('workout-name');
   nameInput.addEventListener('input', e => _showSuggestions(e.target.value));
