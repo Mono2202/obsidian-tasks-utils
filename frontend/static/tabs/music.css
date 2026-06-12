@@ -83,6 +83,8 @@
   width: 100%;
 }
 
+.music-album-name-input { flex: 1; min-width: 0; }
+
 .music-mode-toggle {
   display: flex;
   align-items: center;

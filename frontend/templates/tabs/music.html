@@ -18,6 +18,13 @@
         </label>
         <span id="music-mode-label" class="music-mode-label">Album page</span>
       </div>
+      <div class="music-mode-row" id="music-album-name-row" style="display:none">
+        <span class="music-label">Album</span>
+        <input type="text" id="music-album-name" class="music-album-name-input"
+               placeholder="Custom name (optional)" list="music-album-datalist" autocomplete="off"
+               oninput="_onAlbumNameInput()" />
+        <datalist id="music-album-datalist"></datalist>
+      </div>
       <div class="music-rating-row">
         <span class="music-label">Rating</span>
         <div class="star-rating" id="star-rating"></div>

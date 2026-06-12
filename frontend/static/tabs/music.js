@@ -7,7 +7,21 @@ function onMusicModeChange(checked) {
   _musicAlbumMode = checked;
   localStorage.setItem('musicAlbumMode', checked);
   document.getElementById('music-mode-label').textContent = checked ? 'Album page' : 'Song page';
+  document.getElementById('music-album-name-row').style.display = checked ? 'flex' : 'none';
   if (_musicCurrentTrack) _loadExistingReview(_musicCurrentTrack);
+}
+
+function _onAlbumNameInput() {
+  if (_musicCurrentTrack) _loadExistingReview(_musicCurrentTrack);
+}
+
+async function _loadMusicAlbums() {
+  try {
+    const res = await fetch('/music/albums');
+    const data = await res.json();
+    const dl = document.getElementById('music-album-datalist');
+    dl.innerHTML = (data.albums || []).map(a => `<option value="${escapeHtml(a)}">`).join('');
+  } catch (_) {}
 }
 
 function _initStarRating() {
@@ -80,6 +94,7 @@ async function _onMusicTrackChanged(track) {
 
 async function _loadExistingReview(track) {
   try {
+    const customName = document.getElementById('music-album-name').value.trim();
     const params = new URLSearchParams({
       track_id: track.track_id,
       track_name: track.track_name,
@@ -90,6 +105,7 @@ async function _loadExistingReview(track) {
       cover_url: track.cover_url,
       release_year: track.release_year,
       album_mode: _musicAlbumMode,
+      custom_album_name: customName,
     });
     const res = await fetch(`/music/get-review?${params}`);
     if (res.ok) {
@@ -160,6 +176,7 @@ async function submitMusicReview() {
         rating: _musicRating,
         notes: document.getElementById('music-notes').value,
         album_mode: _musicAlbumMode,
+        custom_album_name: document.getElementById('music-album-name').value.trim(),
       }),
     });
     const data = await res.json();
@@ -183,9 +200,11 @@ function _setMusicStatus(msg, isError) {
 
 function loadMusic() {
   _initStarRating();
+  _loadMusicAlbums();
   const toggle = document.getElementById('music-album-mode');
   toggle.checked = _musicAlbumMode;
   document.getElementById('music-mode-label').textContent = _musicAlbumMode ? 'Album page' : 'Song page';
+  document.getElementById('music-album-name-row').style.display = _musicAlbumMode ? 'flex' : 'none';
   document.getElementById('music-track-title').textContent = 'Loading…';
   document.getElementById('music-track-meta').textContent = '';
   _pollMusicTrack();

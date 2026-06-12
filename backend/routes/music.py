@@ -41,6 +41,16 @@ def create_music_blueprint(spotify, music_writer, logger, spotify_error=None):
             logger.error(f"Failed to get current track: {e}")
             return jsonify({"error": str(e)}), 500
 
+    @bp.route('/music/albums', methods=['GET'])
+    def get_albums():
+        if music_writer is None:
+            return jsonify({"albums": []})
+        try:
+            return jsonify({"albums": music_writer.get_albums()})
+        except Exception as e:
+            logger.error(f"Failed to get albums: {e}")
+            return jsonify({"albums": []})
+
     @bp.route('/music/get-review', methods=['GET'])
     def get_review():
         if music_writer is None:
@@ -48,7 +58,9 @@ def create_music_blueprint(spotify, music_writer, logger, spotify_error=None):
         try:
             track = _track_from_args(request.args)
             album_mode = request.args.get('album_mode', 'true').lower() != 'false'
-            result = music_writer.get_existing_review(track, album_mode=album_mode)
+            custom_album_name = request.args.get('custom_album_name', '').strip()
+            result = music_writer.get_existing_review(track, album_mode=album_mode,
+                                                      custom_album_name=custom_album_name)
             if not result:
                 return jsonify({"review": None})
             rating, notes = result
@@ -69,7 +81,9 @@ def create_music_blueprint(spotify, music_writer, logger, spotify_error=None):
             rating = int(data.get('rating', 0))
             notes = data.get('notes', '')
             album_mode = data.get('album_mode', True)
-            music_writer.upsert_review(track, rating, notes, album_mode=album_mode)
+            custom_album_name = (data.get('custom_album_name') or '').strip()
+            music_writer.upsert_review(track, rating, notes, album_mode=album_mode,
+                                       custom_album_name=custom_album_name)
             mode_label = "album" if album_mode else "song"
             logger.info(f"Review saved [{mode_label} mode]: {track.track_name} ({rating}/10)")
             return jsonify({"status": "success"})

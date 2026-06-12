@@ -25,7 +25,7 @@ app = Flask(
     template_folder=os.path.join(os.path.dirname(__file__), 'frontend', 'templates'),
     static_folder=os.path.join(os.path.dirname(__file__), 'frontend', 'static'),
 )
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 3600  # cache static files for 1 hour
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # no cache during development
 
 logger = get_logger(__name__)
 
