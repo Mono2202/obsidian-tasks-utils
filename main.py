@@ -44,7 +44,8 @@ vault = Vault(vault_path=os.getenv("OBSIDIAN_VAULT_PATH"), spotify=_spotify)
 pushover = Pushover(api_token=os.getenv("PUSHOVER_API_TOKEN"), user_key=os.getenv("PUSHOVER_USER_KEY"))
 
 tasks_store = {}
-reminder.start(vault.tasks, pushover, tasks_store, interval=FETCH_TASKS_INTERVAL)
+reminder.start(vault.tasks, pushover, tasks_store, interval=FETCH_TASKS_INTERVAL,
+               daily_summary_time=os.getenv("DAILY_SUMMARY_TIME", ""))
 
 @app.route('/assets/<path:filename>')
 def assets(filename):
