@@ -52,7 +52,7 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
 .date { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
 
 .header-title { display: flex; align-items: center; gap: 12px; }
-.header-logo { width: 48px; height: 48px; border-radius: 10px; }
+.header-logo { width: 64px; height: 64px; border-radius: 12px; }
 .header-actions { display: flex; gap: 8px; align-items: center; }
 
 .header-btn {
@@ -291,4 +291,7 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
   .tabs { gap: 3px; }
   .tab-btn { flex: 1; padding: 6px 0; display: flex; justify-content: center; }
   .tab-btn img, .header-btn img { width: 20px; height: 20px; }
+  header h1 { font-size: 1rem; }
+  .date { font-size: 0.72rem; }
+  .header-logo { width: 48px; height: 48px; }
 }
