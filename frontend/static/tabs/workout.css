@@ -231,6 +231,87 @@
   margin-bottom: 8px;
 }
 
+/* Rest timer */
+#rest-timer-section {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.rest-timer-bar-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.rest-timer-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.9s linear;
+  width: 100%;
+}
+
+.rest-timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rest-timer-display {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.rest-timer-btns { display: flex; gap: 6px; }
+
+.rest-timer-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.15s, border-color 0.15s;
+}
+.rest-timer-btn:hover { color: var(--text); border-color: var(--text-muted); }
+.rest-timer-skip:hover { color: var(--danger); border-color: var(--danger); }
+
+.rest-timer-duration-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.rest-timer-adj {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, border-color 0.15s;
+}
+.rest-timer-adj:hover { color: var(--text); border-color: var(--text-muted); }
+
 .workout-record-use-btn {
   background: none;
   border: 1px solid var(--border);

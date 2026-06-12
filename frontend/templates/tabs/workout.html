@@ -22,6 +22,22 @@
         </div>
         <div id="workout-feedback" class="feedback"></div>
       </form>
+
+      <div id="rest-timer-section" style="display:none">
+        <div class="rest-timer-bar-track"><div id="rest-timer-bar" class="rest-timer-bar"></div></div>
+        <div class="rest-timer-row">
+          <span id="rest-timer-display" class="rest-timer-display">1:30</span>
+          <div class="rest-timer-btns">
+            <button class="rest-timer-btn" onclick="resetRestTimer()" title="Reset">↺</button>
+            <button class="rest-timer-btn rest-timer-skip" onclick="stopRestTimer()" title="Skip">✕</button>
+          </div>
+        </div>
+        <div class="rest-timer-duration-row">
+          <button class="rest-timer-adj" onclick="_adjustRestDuration(-15)">−</button>
+          <span id="rest-timer-dur-label"></span>
+          <button class="rest-timer-adj" onclick="_adjustRestDuration(15)">+</button>
+        </div>
+      </div>
     </div>
     <div class="workout-side-col">
       <div class="card">

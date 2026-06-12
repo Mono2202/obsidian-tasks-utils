@@ -78,7 +78,7 @@ def index():
 app.register_blueprint(create_tasks_blueprint(vault.tasks, tasks_store, logger))
 app.register_blueprint(create_habits_blueprint(vault.habits, logger))
 app.register_blueprint(create_music_blueprint(_spotify, vault.music, logger, _spotify_error))
-app.register_blueprint(create_workout_blueprint(vault.workout, logger))
+app.register_blueprint(create_workout_blueprint(vault.workout, logger, pushover))
 app.register_blueprint(create_food_blueprint(vault.food, logger))
 app.register_blueprint(create_finance_blueprint(vault.finance, logger))
 
