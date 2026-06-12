@@ -1,6 +1,8 @@
 /* Habits Tab */
 #habits-list { display: flex; flex-direction: column; gap: 8px; }
 
+.habit-wrap { display: flex; flex-direction: column; }
+
 .habit-item {
   display: flex;
   align-items: center;
@@ -20,7 +22,9 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  cursor: pointer;
 }
+.habit-body:hover .habit-name:not(.done) { color: var(--accent); }
 
 .habit-name { font-size: 0.95rem; }
 .habit-desc { font-size: 0.8rem; color: var(--text-muted); }
@@ -32,3 +36,49 @@
   color: var(--text-muted);
   white-space: nowrap;
 }
+
+/* Heatmap panel */
+.habit-heatmap-wrap {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 10px 12px;
+}
+
+
+.habit-wrap:has(.habit-heatmap-wrap[style*="block"]) .habit-item {
+  border-radius: 8px 8px 0 0;
+  border-bottom-color: transparent;
+}
+
+/* Scrollable container for overall (52-week) heatmap */
+.habit-heatmap-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hm-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.hm-month-label { font-size: 0.85rem; font-weight: 600; }
+
+.hm-nav-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 12px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--text);
+  line-height: 1.5;
+  transition: background 0.15s;
+}
+.hm-nav-btn:hover:not(:disabled) { background: var(--border); }
+.hm-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
