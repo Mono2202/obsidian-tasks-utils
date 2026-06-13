@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="/static/tabs/workout.css" />
   <link rel="stylesheet" href="/static/tabs/food.css" />
   <link rel="stylesheet" href="/static/tabs/finance.css" />
+  <link rel="stylesheet" href="/static/tabs/inbox.css" />
 </head>
 <body>
   <header>
@@ -42,9 +43,16 @@
 
   <div class="main">
     <div class="tabs">
-      <button class="tab-btn" onclick="switchTab('today')"><img src="/assets/today.svg" alt="Today" /></button>
+      <button class="tab-btn" style="position:relative" onclick="switchTab('today')">
+        <img src="/assets/today.svg" alt="Today" />
+        <span class="inbox-tab-badge" id="tasks-tab-badge" style="display:none"></span>
+      </button>
       <button class="tab-btn" onclick="switchTab('habits')"><img src="/assets/habits.svg" alt="Habits" /></button>
       <button class="tab-btn" onclick="switchTab('planning')"><img src="/assets/planning.svg" alt="Planning" /></button>
+      <button class="tab-btn" style="position:relative" onclick="switchTab('inbox')">
+        <img src="/assets/inbox.svg" alt="Inbox" />
+        <span class="inbox-tab-badge" id="inbox-tab-badge" style="display:none"></span>
+      </button>
       <button class="tab-btn" onclick="switchTab('music')"><img src="/assets/music.svg" alt="Music" /></button>
       <button class="tab-btn" onclick="switchTab('workout')"><img src="/assets/workout.svg" alt="Workout" /></button>
       <button class="tab-btn" onclick="switchTab('food')"><img src="/assets/food.svg" alt="Food" /></button>
@@ -54,6 +62,7 @@
     {% include 'tabs/today.html' %}
     {% include 'tabs/habits.html' %}
     {% include 'tabs/planning.html' %}
+    {% include 'tabs/inbox.html' %}
     {% include 'tabs/music.html' %}
     {% include 'tabs/workout.html' %}
     {% include 'tabs/food.html' %}
@@ -64,10 +73,16 @@
   <script src="/static/tabs/today.js"></script>
   <script src="/static/tabs/habits.js"></script>
   <script src="/static/tabs/planning.js"></script>
+  <script src="/static/tabs/inbox.js"></script>
   <script src="/static/tabs/music.js"></script>
   <script src="/static/tabs/workout.js"></script>
   <script src="/static/tabs/food.js"></script>
   <script src="/static/tabs/finance.js"></script>
-  <script>switchTab(localStorage.getItem('activeTab') || 'today');</script>
+  <script>
+    const _initTab = localStorage.getItem('activeTab') || 'today';
+    switchTab(_initTab);
+    if (_initTab !== 'today') loadTasks();
+    if (_initTab !== 'inbox') { loadInboxItems(); inboxLoaded = true; }
+  </script>
 </body>
 </html>

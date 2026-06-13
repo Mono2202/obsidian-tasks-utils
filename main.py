@@ -10,6 +10,7 @@ from backend.notifications import reminder
 from backend.notifications.pushover import Pushover
 from backend.routes.tasks import create_tasks_blueprint
 from backend.routes.habits import create_habits_blueprint
+from backend.routes.inbox import create_inbox_blueprint
 from backend.routes.music import create_music_blueprint
 from backend.routes.workout import create_workout_blueprint
 from backend.routes.food import create_food_blueprint
@@ -45,7 +46,7 @@ vault = Vault(vault_path=os.getenv("OBSIDIAN_VAULT_PATH"), spotify=_spotify)
 pushover = Pushover(api_token=os.getenv("PUSHOVER_API_TOKEN"), user_key=os.getenv("PUSHOVER_USER_KEY"))
 
 tasks_store = {}
-reminder.start(vault.tasks, vault.habits, pushover, tasks_store, interval=FETCH_TASKS_INTERVAL,
+reminder.start(vault.tasks, vault.habits, vault.inbox, pushover, tasks_store, interval=FETCH_TASKS_INTERVAL,
                daily_summary_time=os.getenv("DAILY_SUMMARY_TIME", ""),
                habits_reminder_time=os.getenv("DAILY_HABITS_TIME", ""))
 
@@ -78,6 +79,7 @@ def index():
 
 app.register_blueprint(create_tasks_blueprint(vault.tasks, tasks_store, logger))
 app.register_blueprint(create_habits_blueprint(vault.habits, logger))
+app.register_blueprint(create_inbox_blueprint(vault.inbox, logger))
 app.register_blueprint(create_music_blueprint(_spotify, vault.music, logger, _spotify_error))
 app.register_blueprint(create_workout_blueprint(vault.workout, logger, pushover))
 app.register_blueprint(create_food_blueprint(vault.food, logger))

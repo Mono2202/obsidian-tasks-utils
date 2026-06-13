@@ -165,6 +165,7 @@ function playCompletionFeedback() {
 
 let planningLoaded = false;
 let habitsLoaded = false;
+let inboxLoaded = false;
 let musicLoaded = false;
 let workoutLoaded = false;
 let foodLoaded = false;
@@ -184,6 +185,10 @@ function switchTab(tab) {
     loadNextTasks();
     loadUpcomingTasks();
     planningLoaded = true;
+  }
+  if (tab === 'inbox' && !inboxLoaded) {
+    loadInboxItems();
+    inboxLoaded = true;
   }
   if (tab === 'habits' && !habitsLoaded) {
     loadHabits();

@@ -48,7 +48,7 @@ def _send_habits_reminder(habits_obsidian, pushover):
     logger.info(f"Habits reminder sent: {len(lines)} pending")
 
 
-def _worker(obsidian, habits_obsidian, pushover, tasks_store, interval,
+def _worker(obsidian, habits_obsidian, inbox_obsidian, pushover, tasks_store, interval,
             daily_summary_time, habits_reminder_time):
     logger.info("Reminder background worker started...")
     last_reminded_time = ""
@@ -74,6 +74,16 @@ def _worker(obsidian, habits_obsidian, pushover, tasks_store, interval,
                     logger.info(f"Sending start notification: {message}")
                     pushover.send_message(message=message, title="Task Starting Today")
 
+            if inbox_obsidian:
+                try:
+                    for item in inbox_obsidian.fetch_inbox_items():
+                        if item.get("time") == current_time_str and "#remind" in item.get("tags", []):
+                            message = item["description"] or "Inbox item"
+                            logger.info(f"Sending inbox remind: {message}")
+                            pushover.send_message(message=message, title="📥 Inbox Reminder")
+                except Exception as e:
+                    logger.error(f"Inbox remind check failed: {e}")
+
             if (daily_summary_time
                     and current_time_str == daily_summary_time
                     and last_summary_date != today):
@@ -92,11 +102,11 @@ def _worker(obsidian, habits_obsidian, pushover, tasks_store, interval,
         time.sleep(interval)
 
 
-def start(obsidian, habits_obsidian, pushover, tasks_store, interval,
+def start(obsidian, habits_obsidian, inbox_obsidian, pushover, tasks_store, interval,
           daily_summary_time="", habits_reminder_time=""):
     daemon = threading.Thread(
         target=_worker,
-        args=(obsidian, habits_obsidian, pushover, tasks_store, interval,
+        args=(obsidian, habits_obsidian, inbox_obsidian, pushover, tasks_store, interval,
               daily_summary_time, habits_reminder_time),
         daemon=True,
     )

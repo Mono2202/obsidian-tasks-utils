@@ -2,6 +2,7 @@ import os
 
 from .tasks import Tasks
 from .habits import Habits
+from .inbox import Inbox
 from .workout import Workout
 from .music import Music
 from .food import Food
@@ -15,10 +16,20 @@ class Vault:
 
         daily_folder = os.getenv("OBSIDIAN_DAILY_PATH", "")
 
+        inbox_path = abspath(os.getenv("OBSIDIAN_INBOX_PATH", ""))
+        imploding_tasks_path = abspath(os.getenv("OBSIDIAN_IMPLODING_TASKS_PATH", ""))
+
         self.tasks = Tasks(
             vault_path,
-            inbox_path=abspath(os.getenv("OBSIDIAN_INBOX_PATH", "")),
-            imploding_tasks_path=abspath(os.getenv("OBSIDIAN_IMPLODING_TASKS_PATH", "")),
+            inbox_path=inbox_path,
+            imploding_tasks_path=imploding_tasks_path,
+            ignore_dirs=ignore_dirs,
+        )
+        self.inbox = Inbox(
+            vault_path,
+            inbox_path=inbox_path,
+            imploding_tasks_path=imploding_tasks_path,
+            archive_path=abspath(os.getenv("OBSIDIAN_ARCHIVE_PATH", "")),
             ignore_dirs=ignore_dirs,
         )
         self.habits = Habits(

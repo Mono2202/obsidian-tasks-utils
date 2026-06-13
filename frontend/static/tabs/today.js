@@ -1,3 +1,8 @@
+function _updateTasksBadge(n) {
+  const badge = document.getElementById('tasks-tab-badge');
+  if (badge) { badge.textContent = n; badge.style.display = n > 0 ? 'flex' : 'none'; }
+}
+
 function _fmtDate(iso) {
   if (!iso) return '';
   const [y, m, d] = iso.split('-');
@@ -13,6 +18,7 @@ async function loadTasks() {
     const tasks = data.tasks;
     const today = new Date().toISOString().slice(0, 10);
     let ids = Object.keys(tasks);
+    _updateTasksBadge(ids.length);
 
     if (ids.length === 0) {
       list.innerHTML = '<div class="empty-state">No tasks for today.</div>';

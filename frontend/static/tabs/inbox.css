@@ -1,0 +1,378 @@
+/* ── Panel ─────────────────────────────────────────────────────────────────── */
+
+.inbox-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.inbox-obsidian-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+}
+
+.inbox-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--danger);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+#inbox-quick-add {
+  margin-bottom: 10px;
+}
+
+.inbox-remind-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.inbox-remind-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.inbox-remind-label input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+#inbox-remind-time:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.inbox-search-row {
+  margin-bottom: 14px;
+}
+
+.inbox-search-row input {
+  width: 100%;
+}
+
+#inbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inbox-item {
+  cursor: default;
+}
+
+
+/* ── Tab badge ─────────────────────────────────────────────────────────────── */
+
+.inbox-tab-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  background: var(--danger);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  min-width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  pointer-events: none;
+}
+
+/* ── Modal overlay ─────────────────────────────────────────────────────────── */
+
+.inbox-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.inbox-modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.inbox-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inbox-modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.inbox-close-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.inbox-close-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+/* ── Fields ────────────────────────────────────────────────────────────────── */
+
+.inbox-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inbox-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.inbox-label-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.72rem;
+}
+
+.inbox-fields-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.inbox-fields-row .inbox-field {
+  flex: 1;
+  min-width: 120px;
+}
+
+.inbox-date-input {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.inbox-date-input:focus {
+  border-color: var(--accent);
+}
+
+:root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* ── Tags ──────────────────────────────────────────────────────────────────── */
+
+.inbox-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-height: 38px;
+  cursor: text;
+  transition: border-color 0.15s;
+}
+
+.inbox-tags-container:focus-within {
+  border-color: var(--accent);
+}
+
+.inbox-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.inbox-tag-remove {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.1s;
+}
+
+.inbox-tag-remove:hover {
+  opacity: 1;
+}
+
+.inbox-tag-input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  min-width: 120px;
+  flex: 1;
+  padding: 0;
+}
+
+/* ── Vault file autocomplete ───────────────────────────────────────────────── */
+
+.vault-files-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--shadow);
+  z-index: 10;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.vault-file-option {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.12s;
+  word-break: break-all;
+}
+
+.vault-file-option:hover {
+  background: var(--input-bg);
+}
+
+.vault-file-create {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ── Action buttons ────────────────────────────────────────────────────────── */
+
+.inbox-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.inbox-btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.inbox-btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.inbox-btn-secondary {
+  background: none;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.inbox-btn-secondary:hover {
+  background: var(--input-bg);
+  border-color: var(--text-muted);
+}
+
+.inbox-btn-danger {
+  background: none;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.inbox-btn-danger:hover {
+  background: #4a1a1a;
+}
+
+@media (max-width: 480px) {
+  .inbox-fields-row {
+    flex-direction: column;
+  }
+
+  .inbox-modal-card {
+    padding: 16px;
+    gap: 12px;
+  }
+}

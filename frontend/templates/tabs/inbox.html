@@ -1,0 +1,123 @@
+<div id="tab-inbox" class="tab-panel">
+  <div class="card">
+    <div class="tasks-header">
+      <h2>
+        Inbox
+        <span class="inbox-count-badge" id="inbox-count-badge" style="display:none"></span>
+      </h2>
+      <div class="inbox-header-actions">
+        <button class="refresh-btn" id="inbox-sort-btn" onclick="toggleInboxSort()">↓</button>
+        <button class="refresh-btn inbox-obsidian-btn" onclick="openObsidianInbox()" title="Open in Obsidian">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <form id="inbox-quick-add" onsubmit="quickAddInboxItem(event)">
+      <div class="form-row">
+        <input type="text" id="inbox-quick-input" placeholder="Capture to inbox..." required />
+        <button type="submit">Add</button>
+      </div>
+      <div class="inbox-remind-row">
+        <label class="inbox-remind-label">
+          <input type="checkbox" id="inbox-remind-check"
+            onchange="document.getElementById('inbox-remind-time').disabled = !this.checked" />
+          <span>Remind at</span>
+        </label>
+        <input type="time" id="inbox-remind-time" disabled />
+      </div>
+      <div class="feedback" id="inbox-quick-feedback"></div>
+    </form>
+
+    <div class="inbox-search-row">
+      <input type="text" id="inbox-filter" placeholder="Search inbox..." oninput="filterInboxItems()" />
+    </div>
+
+    <div id="inbox-list">
+      <div class="empty-state"><span class="spinner"></span> Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Inbox popup modal (position:fixed, rendered outside flow) -->
+<div id="inbox-modal" class="inbox-modal-overlay" style="display:none" onclick="closeInboxPopup(event)">
+  <div class="inbox-modal-card" onclick="event.stopPropagation()">
+    <div class="inbox-modal-header">
+      <span class="inbox-modal-title">Edit Item</span>
+      <button class="inbox-close-btn" onclick="closeInboxPopup()">✕</button>
+    </div>
+
+    <div class="inbox-field">
+      <label class="inbox-label">Task</label>
+      <input type="text" id="popup-description" placeholder="Task description..." />
+    </div>
+
+    <div class="inbox-fields-row">
+      <div class="inbox-field">
+        <label class="inbox-label">📅 Due</label>
+        <input type="date" id="popup-due" class="inbox-date-input" />
+      </div>
+      <div class="inbox-field">
+        <label class="inbox-label">⏳ Scheduled</label>
+        <input type="date" id="popup-scheduled" class="inbox-date-input" />
+      </div>
+      <div class="inbox-field">
+        <label class="inbox-label">🛫 Start</label>
+        <input type="date" id="popup-start" class="inbox-date-input" />
+      </div>
+    </div>
+
+    <div class="inbox-fields-row">
+      <div class="inbox-field">
+        <label class="inbox-label">@ Time</label>
+        <input type="time" id="popup-time" />
+      </div>
+      <div class="inbox-field" style="flex:2">
+        <label class="inbox-label">🔁 Recurrence</label>
+        <select id="popup-recur">
+          <option value="">None</option>
+          <option value="every 2 days">Every 2 days</option>
+          <option value="every week">Every week</option>
+          <option value="every 2 weeks">Every 2 weeks</option>
+          <option value="every 3 weeks">Every 3 weeks</option>
+          <option value="every month">Every month</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="inbox-field">
+      <label class="inbox-label">Tags</label>
+      <div class="inbox-tags-container" id="popup-tags-container">
+        <input type="text" id="popup-tag-input" class="inbox-tag-input" placeholder="Add tag and press Enter..." />
+      </div>
+    </div>
+
+    <div class="inbox-field" style="position:relative">
+      <label class="inbox-label">
+        Move to page
+        <span class="inbox-label-hint">(leave empty → Imploding Tasks)</span>
+      </label>
+      <input
+        type="text"
+        id="popup-target"
+        placeholder="Start typing a page name..."
+        autocomplete="off"
+        oninput="filterVaultFiles()"
+        onfocus="showVaultDropdown()"
+      />
+      <div id="vault-files-dropdown" class="vault-files-dropdown" style="display:none"></div>
+    </div>
+
+    <div class="inbox-modal-actions">
+      <button class="inbox-btn-danger" onclick="deleteInboxItem()">Delete</button>
+      <div style="display:flex;gap:8px">
+        <button class="inbox-btn-secondary" onclick="saveInboxItem()">Save</button>
+        <button class="inbox-btn-primary" onclick="moveInboxItem()">Move</button>
+      </div>
+    </div>
+  </div>
+</div>
