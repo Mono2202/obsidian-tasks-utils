@@ -175,6 +175,7 @@ class Tasks(ObsidianBase):
                         time_match = self.TIME_PATTERN.search(line)
                         start_match = self.START_DATE_PATTERN.search(line)
                         recur_match = self.RECUR_PATTERN.search(line)
+                        has_recur = self.ANY_RECUR_PATTERN.search(line)
                         next_tasks[task_id] = {
                             "task": line.strip(),
                             "file": os.path.basename(file_path),
@@ -187,6 +188,7 @@ class Tasks(ObsidianBase):
                             "start": start_match.group(1) if start_match else None,
                             "time": time_match.group(1) if time_match else None,
                             "recur": recur_match.group(1) if recur_match else None,
+                            "completable": not has_recur or bool(recur_match),
                         }
             except Exception as e:
                 logger.error(f"Error reading {file_path}: {e}")
@@ -227,6 +229,7 @@ class Tasks(ObsidianBase):
                         time_match = self.TIME_PATTERN.search(line)
                         start_match = self.START_DATE_PATTERN.search(line)
                         recur_match = self.RECUR_PATTERN.search(line)
+                        has_recur = self.ANY_RECUR_PATTERN.search(line)
                         upcoming_tasks[task_id] = {
                             "task": line.strip(),
                             "file": os.path.basename(file_path),
@@ -240,12 +243,67 @@ class Tasks(ObsidianBase):
                             "start": start_match.group(1) if start_match else None,
                             "time": time_match.group(1) if time_match else None,
                             "recur": recur_match.group(1) if recur_match else None,
+                            "completable": not has_recur or bool(recur_match),
                         }
             except Exception as e:
                 logger.error(f"Error reading {file_path}: {e}")
 
         logger.info(f"Fetched {len(upcoming_tasks)} upcoming tasks from vault")
         return upcoming_tasks
+
+    def fetch_inline_tasks(self, file_path):
+        tasks = []
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                for line in f.readlines():
+                    if not self.TASK_PATTERN.search(line):
+                        continue
+                    if "#inline" not in line:
+                        continue
+                    due_match = self.DUE_DATE_PATTERN.search(line)
+                    sched_match = self.SCHED_DATE_PATTERN.search(line)
+                    time_match = self.TIME_PATTERN.search(line)
+                    start_match = self.START_DATE_PATTERN.search(line)
+                    recur_match = self.RECUR_PATTERN.search(line)
+                    desc = line.strip()
+                    desc = re.sub(r"^-\s\[.\]\s*", "", desc)
+                    desc = re.sub(r"📅\s*\d{4}-\d{2}-\d{2}", "", desc)
+                    desc = re.sub(r"⏳\s*\d{4}-\d{2}-\d{2}", "", desc)
+                    desc = re.sub(r"🛫\s*\d{4}-\d{2}-\d{2}", "", desc)
+                    desc = re.sub(r"✅\s*\d{4}-\d{2}-\d{2}", "", desc)
+                    desc = re.sub(r"🔁\s*(every 2 days|every week|every 2 weeks|every 3 weeks|every month)", "", desc)
+                    desc = re.sub(r"@\d{2}:\d{2}", "", desc)
+                    desc = re.sub(r"#\S+", "", desc)
+                    desc = re.sub(r"\s+", " ", desc).strip()
+                    tasks.append({
+                        "raw_line": line,
+                        "description": desc,
+                        "due": due_match.group(1) if due_match else None,
+                        "scheduled": sched_match.group(1) if sched_match else None,
+                        "start": start_match.group(1) if start_match else None,
+                        "time": time_match.group(1) if time_match else None,
+                        "recur": recur_match.group(1) if recur_match else None,
+                    })
+        except Exception as e:
+            logger.error(f"Error reading inline tasks from {file_path}: {e}")
+        return tasks
+
+    def promote_inline_task(self, file_path, raw_line):
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        if raw_line not in content:
+            raise ValueError("Task not found in file")
+        new_line = re.sub(r"#inline\b", "#next", raw_line, count=1)
+        content = content.replace(raw_line, new_line, 1)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        logger.info(f"Promoted inline→next in {file_path}: {raw_line.strip()}")
+        return new_line
+
+    def add_next_task(self, file_path, new_line):
+        with open(file_path, "a", encoding="utf-8") as f:
+            f.write(new_line if new_line.endswith("\n") else new_line + "\n")
+        logger.info(f"Added next task to {file_path}: {new_line.strip()}")
 
     def update_task(self, file_path, raw_line, new_line):
         with open(file_path, "r", encoding="utf-8") as f:

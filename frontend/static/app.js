@@ -301,6 +301,167 @@ function renderTaskBadges(t) {
   };
 }
 
+// ── Next action modal ─────────────────────────────────────────────────────────
+
+let _nextActionRelPath = null;
+let _nextActionInlineTasks = [];
+let _nextActionSelectedRawLine = null;
+let _nextActionKbIndex = -1;
+let _nextActionTags = [];
+
+async function openNextActionModal(relPath, file) {
+  _nextActionRelPath = relPath;
+  _nextActionSelectedRawLine = null;
+  _nextActionKbIndex = -1;
+  _nextActionTags = [];
+  _nextActionInlineTasks = [];
+
+  document.getElementById('next-action-description').value = '';
+  document.getElementById('next-action-due').value = '';
+  document.getElementById('next-action-scheduled').value = '';
+  document.getElementById('next-action-start').value = '';
+  document.getElementById('next-action-time').value = '';
+  document.getElementById('next-action-recur').value = '';
+  _renderNextActionTags();
+
+  document.getElementById('next-action-file-badge').textContent = file || '';
+  document.getElementById('next-action-inline-section').style.display = 'none';
+  document.getElementById('next-action-new-label').textContent = 'Add a next task';
+  document.getElementById('next-action-modal').style.display = 'flex';
+  _updateNextActionConfirm();
+  _ensureVaultTags();
+
+  try {
+    const res = await fetch(`/task/inline-tasks?rel_path=${encodeURIComponent(relPath)}`);
+    const data = await res.json();
+    _nextActionInlineTasks = data.tasks || [];
+    if (_nextActionInlineTasks.length) {
+      document.getElementById('next-action-inline-section').style.display = 'block';
+      document.getElementById('next-action-new-label').textContent = 'Or add a different next task';
+      _renderNextActionInlineList();
+    }
+  } catch (_) {}
+
+  const descEl = document.getElementById('next-action-description');
+  descEl.style.height = 'auto';
+  descEl.focus();
+}
+
+function closeNextActionModal(e) {
+  if (e && e.target !== document.getElementById('next-action-modal')) return;
+  _closeNextActionModal();
+}
+
+function _closeNextActionModal() {
+  document.getElementById('next-action-modal').style.display = 'none';
+  _nextActionRelPath = null;
+  _nextActionSelectedRawLine = null;
+  loadNextTasks();
+}
+
+function _renderNextActionInlineList() {
+  const list = document.getElementById('next-action-inline-list');
+  list.innerHTML = _nextActionInlineTasks.map((t, i) => {
+    const badges = [
+      t.due       ? `<span class="badge due">📅 ${_fmtDate(t.due)}</span>` : '',
+      t.scheduled ? `<span class="badge scheduled">⏳ ${_fmtDate(t.scheduled)}</span>` : '',
+      t.start     ? `<span class="badge started">🛫 ${_fmtDate(t.start)}</span>` : '',
+      t.time      ? `<span class="badge time">@ ${t.time}</span>` : '',
+      t.recur     ? `<span class="badge recur">🔁 ${t.recur}</span>` : '',
+    ].join('');
+    return `
+      <button class="next-action-option" tabindex="0" data-index="${i}"
+        onclick="_selectNextActionInline(${i})"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();_selectNextActionInline(${i});confirmNextAction();}">
+        <div class="next-action-option-text">${t.description ? escapeHtml(t.description) : '<span style="color:var(--text-muted)">(no description)</span>'}</div>
+        ${badges ? `<div class="task-meta" style="margin-top:5px">${badges}</div>` : ''}
+      </button>`;
+  }).join('');
+}
+
+function _selectNextActionInline(index) {
+  _nextActionSelectedRawLine = _nextActionInlineTasks[index]?.raw_line || null;
+  _nextActionKbIndex = index;
+  document.querySelectorAll('.next-action-option').forEach((el, i) => el.classList.toggle('active', i === index));
+  document.getElementById('next-action-description').value = '';
+  _updateNextActionConfirm();
+}
+
+function _updateNextActionConfirm() {
+  const btn = document.getElementById('next-action-confirm-btn');
+  if (!btn) return;
+  const hasInline = _nextActionSelectedRawLine !== null;
+  const hasNew = (document.getElementById('next-action-description')?.value || '').trim().length > 0;
+  btn.disabled = !hasInline && !hasNew;
+}
+
+function _renderNextActionTags() {
+  const container = document.getElementById('next-action-tags-container');
+  if (!container) return;
+  const input = document.getElementById('next-action-tag-input');
+  container.querySelectorAll('.inbox-tag-chip').forEach(el => el.remove());
+  _nextActionTags.forEach((tag, i) => {
+    const chip = document.createElement('span');
+    chip.className = `badge ${tagBadgeClass(tag)} inbox-tag-chip`;
+    chip.innerHTML = `${escapeHtml(tag)} <button class="inbox-tag-remove" type="button" onclick="removeNextActionTag(${i})">×</button>`;
+    container.insertBefore(chip, input);
+  });
+}
+
+function removeNextActionTag(index) {
+  _nextActionTags.splice(index, 1);
+  _renderNextActionTags();
+}
+
+async function confirmNextAction() {
+  if (!_nextActionRelPath) return;
+  const btn = document.getElementById('next-action-confirm-btn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+
+  try {
+    let ok = false;
+    if (_nextActionSelectedRawLine) {
+      const res = await fetch('/task/promote-inline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rel_path: _nextActionRelPath, raw_line: _nextActionSelectedRawLine }),
+      });
+      ok = res.ok;
+      if (!ok) { const d = await res.json(); alert(d.error || 'Failed.'); }
+    } else {
+      const description = document.getElementById('next-action-description').value.trim();
+      const res = await fetch('/task/add-next', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rel_path: _nextActionRelPath,
+          description,
+          tags: _nextActionTags,
+          due:       document.getElementById('next-action-due').value,
+          scheduled: document.getElementById('next-action-scheduled').value,
+          start:     document.getElementById('next-action-start').value,
+          time:      document.getElementById('next-action-time').value,
+          recur:     document.getElementById('next-action-recur').value,
+        }),
+      });
+      ok = res.ok;
+      if (!ok) { const d = await res.json(); alert(d.error || 'Failed.'); }
+    }
+    if (ok) {
+      document.getElementById('next-action-modal').style.display = 'none';
+      _nextActionRelPath = null;
+      _nextActionSelectedRawLine = null;
+      loadNextTasks();
+    } else {
+      btn.disabled = false;
+    }
+  } catch (_) {
+    alert('Request failed.');
+    btn.disabled = false;
+  }
+}
+
 // ── Task edit popup ───────────────────────────────────────────────────────────
 
 let _currentTask = null;
@@ -444,6 +605,74 @@ document.addEventListener('DOMContentLoaded', () => {
       saveTaskPopup();
     }
   });
+
+  document.addEventListener('keydown', e => {
+    const modal = document.getElementById('next-action-modal');
+    if (!modal || modal.style.display === 'none') return;
+
+    if (e.key === 'Escape') { _closeNextActionModal(); return; }
+
+    if (e.key === 'Enter' && e.target.id !== 'next-action-description' && e.target.id !== 'next-action-tag-input') {
+      e.preventDefault();
+      confirmNextAction();
+      return;
+    }
+
+    const options = document.querySelectorAll('.next-action-option');
+    if (!options.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (_nextActionKbIndex < options.length - 1) {
+        _selectNextActionInline(_nextActionKbIndex + 1);
+        options[_nextActionKbIndex]?.focus();
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (_nextActionKbIndex > 0) {
+        _selectNextActionInline(_nextActionKbIndex - 1);
+        options[_nextActionKbIndex]?.focus();
+      } else if (_nextActionKbIndex === 0) {
+        _nextActionSelectedRawLine = null;
+        _nextActionKbIndex = -1;
+        document.querySelectorAll('.next-action-option').forEach(el => el.classList.remove('active'));
+        document.getElementById('next-action-description').focus();
+        _updateNextActionConfirm();
+      }
+    }
+  });
+
+  const naDesc = document.getElementById('next-action-description');
+  if (naDesc) {
+    naDesc.addEventListener('input', function () {
+      this.style.height = 'auto';
+      this.style.height = this.scrollHeight + 'px';
+      if (_nextActionSelectedRawLine !== null) {
+        _nextActionSelectedRawLine = null;
+        _nextActionKbIndex = -1;
+        document.querySelectorAll('.next-action-option').forEach(el => el.classList.remove('active'));
+      }
+      _updateNextActionConfirm();
+    });
+  }
+
+  const naTagInput = document.getElementById('next-action-tag-input');
+  if (naTagInput) {
+    const onSelect = tag => {
+      if (!_nextActionTags.includes(tag)) { _nextActionTags.push(tag); _renderNextActionTags(); }
+      naTagInput.value = '';
+      _hideTagSuggestions();
+    };
+    naTagInput.addEventListener('input', () => _showTagSuggestions(naTagInput, onSelect));
+    naTagInput.addEventListener('keydown', e => {
+      if (_tagInputKeydown(e, naTagInput, onSelect)) return;
+      if (e.key !== 'Enter' && e.key !== ',') return;
+      e.preventDefault();
+      const val = naTagInput.value.trim().replace(/^#+/, '');
+      if (!val) return;
+      onSelect('#' + val);
+    });
+  }
 });
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
