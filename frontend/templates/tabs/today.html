@@ -9,29 +9,16 @@
   </div>
 
   <div class="tasks-row">
-    <div style="display:flex;flex-direction:column;gap:20px;flex:1;min-width:0;">
-      <div class="card">
-        <h2>Add to Inbox</h2>
-        <form id="inbox-form" onsubmit="submitInbox(event)">
-          <div class="form-row">
-            <input type="text" id="inbox-task" placeholder="Task description..." required />
-            <button type="submit">Add</button>
-          </div>
-          <div class="feedback" id="inbox-feedback"></div>
-        </form>
-      </div>
-
-      <div class="card">
-        <h2>Add to Today</h2>
-        <form id="today-form" onsubmit="submitToday(event)">
-          <div class="form-row">
-            <input type="text" id="today-task" placeholder="Task description..." required />
-            <input type="time" id="today-time" />
-            <button type="submit">Add</button>
-          </div>
-          <div class="feedback" id="today-feedback"></div>
-        </form>
-      </div>
+    <div class="card">
+      <h2>Add to Today</h2>
+      <form id="today-form" onsubmit="submitToday(event)">
+        <div class="form-row">
+          <input type="text" id="today-task" placeholder="Task description..." required />
+          <input type="time" id="today-time" />
+          <button type="submit">Add</button>
+        </div>
+        <div class="feedback" id="today-feedback"></div>
+      </form>
     </div>
   </div>
 </div>

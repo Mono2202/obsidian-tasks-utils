@@ -1,3 +1,4 @@
+import os
 import re
 import time
 from datetime import datetime
@@ -16,7 +17,7 @@ def create_tasks_blueprint(obsidian, tasks_store, logger):
         tasks_store.update(new_tasks)
         logger.info(f"Fetched {len(tasks_store)} tasks for today")
         serializable = {
-            k: {f: v for f, v in t.items() if f not in ('raw_line', 'file_path')}
+            k: {f: v for f, v in t.items() if f != 'file_path'}
             for k, t in tasks_store.items()
         }
         return jsonify({
@@ -107,7 +108,7 @@ def create_tasks_blueprint(obsidian, tasks_store, logger):
     def upcoming_tasks():
         tasks = obsidian.fetch_upcoming_tasks()
         serializable = {
-            k: {f: v for f, v in t.items() if f not in ('raw_line', 'file_path')}
+            k: {f: v for f, v in t.items() if f != 'file_path'}
             for k, t in tasks.items()
         }
         return jsonify({"count": len(tasks), "tasks": serializable})
@@ -116,9 +117,32 @@ def create_tasks_blueprint(obsidian, tasks_store, logger):
     def next_tasks():
         tasks = obsidian.fetch_next_tasks()
         serializable = {
-            k: {f: v for f, v in t.items() if f not in ('raw_line', 'file_path')}
+            k: {f: v for f, v in t.items() if f != 'file_path'}
             for k, t in tasks.items()
         }
         return jsonify({"count": len(tasks), "tasks": serializable})
+
+    @bp.route('/task/update', methods=['POST'])
+    def update_task():
+        data = request.get_json() or {}
+        rel_path = data.get('rel_path')
+        raw_line = data.get('raw_line')
+        new_line = data.get('new_line')
+        if not rel_path or not raw_line or not new_line:
+            return jsonify({"error": "rel_path, raw_line and new_line required"}), 400
+        file_path = os.path.join(obsidian.vault_path, rel_path)
+        try:
+            obsidian.update_task(file_path, raw_line, new_line)
+            for task in tasks_store.values():
+                if task['raw_line'] == raw_line:
+                    task['raw_line'] = new_line
+                    task['task'] = new_line.strip()
+                    break
+            return jsonify({"status": "success"})
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            logger.error(f"Failed to update task: {e}")
+            return jsonify({"error": str(e)}), 500
 
     return bp

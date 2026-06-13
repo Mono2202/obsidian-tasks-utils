@@ -101,4 +101,9 @@ def create_inbox_blueprint(inbox, logger):
         files = inbox.list_vault_files()
         return jsonify({"files": files})
 
+    @bp.route("/vault-tags", methods=["GET"])
+    def vault_tags():
+        tags = inbox.list_vault_tags()
+        return jsonify({"tags": tags})
+
     return bp

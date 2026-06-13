@@ -1,3 +1,7 @@
+let todayTasks = {};
+
+// _fmtDate is now in app.js
+
 function _updateTasksBadge(n) {
   const badge = document.getElementById('tasks-tab-badge');
   if (badge) { badge.textContent = n; badge.style.display = n > 0 ? 'flex' : 'none'; }
@@ -17,6 +21,7 @@ async function loadTasks() {
     const data = await res.json();
     const tasks = data.tasks;
     const today = new Date().toISOString().slice(0, 10);
+    todayTasks = tasks;
     let ids = Object.keys(tasks);
     _updateTasksBadge(ids.length);
 
@@ -40,29 +45,16 @@ async function loadTasks() {
     list.innerHTML = ids.map(id => {
       const t = tasks[id];
       const text = cleanTaskText(t.task);
-      const overdue = isOverdue(t);
-      const started = !overdue && t.start && t.start <= today;
-      const scheduledToday = !overdue && t.scheduled === today;
-      const overdueLabel = overdue ? (t.due && t.due < today ? t.due : t.scheduled) : null;
-      const overdueBadge = overdue ? `<span class="badge overdue">Overdue · ${_fmtDate(overdueLabel)}</span>` : '';
-      const startedBadge = started ? `<span class="badge started">🛫 ${_fmtDate(t.start)}</span>` : '';
-      const timeBadge = t.time ? `<span class="badge time">@ ${t.time}</span>` : '';
-      const dueBadge = !overdue && t.due ? `<span class="badge due">📅 ${_fmtDate(t.due)}</span>` : '';
-      const schedBadge = !overdue && t.scheduled ? `<span class="badge scheduled">⏳ ${_fmtDate(t.scheduled)}</span>` : '';
-      const recurBadge = t.recur ? `<span class="badge recur">🔁 ${t.recur}</span>` : '';
-      const fileBadge = t.rel_path
-        ? `<span class="badge file" style="${folderBadgeStyle(t.top_folder)};cursor:pointer" data-path="${escapeHtml(t.rel_path)}" onclick="openObsidianFile(this.dataset.path)">${escapeHtml(t.file)}</span>`
-        : `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
-      const cls = overdue ? ' overdue' : scheduledToday ? ' scheduled-today' : started ? ' started' : '';
+      const { html: badges, cls } = renderTaskBadges(t);
       const checkbox = t.completable
         ? `<input type="checkbox" class="task-checkbox" onchange="completeTask('${id}', this)" />`
         : `<span class="task-checkbox" title="Unsupported recurrence"></span>`;
       return `
         <div class="task-item${cls}" id="task-${id}">
           ${checkbox}
-          <div class="task-body">
+          <div class="task-body" style="cursor:pointer" onclick="openTaskPopup(todayTasks['${id}'], 'today')">
             <div class="task-text">${renderText(text)}</div>
-            <div class="task-meta">${overdueBadge}${startedBadge}${dueBadge}${schedBadge}${timeBadge}${recurBadge}${fileBadge}</div>
+            <div class="task-meta">${badges}</div>
           </div>
         </div>`;
     }).join('');
@@ -130,17 +122,28 @@ async function completeTask(id, checkbox) {
 async function submitInbox(e) {
   e.preventDefault();
   const input = document.getElementById('inbox-task');
+  const remindCheck = document.getElementById('today-remind-check');
+  const remindTime = document.getElementById('today-remind-time');
   const feedback = document.getElementById('inbox-feedback');
   const btn = e.target.querySelector('button');
   btn.disabled = true;
   feedback.textContent = '';
+
+  let task = input.value;
+  if (remindCheck.checked && remindTime.value) {
+    task += ` #remind @${remindTime.value}`;
+  }
+
   try {
-    const res = await fetch(`/add-task?task=${encodeURIComponent(input.value)}`);
+    const res = await fetch(`/add-task?task=${encodeURIComponent(task)}`);
     const data = await res.json();
     if (res.ok) {
       feedback.className = 'feedback ok';
       feedback.textContent = 'Added to Inbox.';
       input.value = '';
+      remindCheck.checked = false;
+      remindTime.value = '';
+      remindTime.disabled = true;
     } else {
       feedback.className = 'feedback err';
       feedback.textContent = data.error || 'Error.';

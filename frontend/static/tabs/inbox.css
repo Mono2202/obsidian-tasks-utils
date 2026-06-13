@@ -30,10 +30,6 @@
   vertical-align: middle;
 }
 
-#inbox-quick-add {
-  margin-bottom: 10px;
-}
-
 .inbox-remind-row {
   display: flex;
   align-items: center;
@@ -198,6 +194,26 @@
   min-width: 120px;
 }
 
+.inbox-textarea {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: none;
+  overflow: hidden;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.inbox-textarea:focus {
+  border-color: var(--accent);
+}
+
 .inbox-date-input {
   background: var(--input-bg);
   border: 1px solid var(--border);
@@ -276,18 +292,14 @@
 /* ── Vault file autocomplete ───────────────────────────────────────────────── */
 
 .vault-files-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  position: fixed;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 4px 16px var(--shadow);
-  z-index: 10;
+  z-index: 1100;
   max-height: 220px;
   overflow-y: auto;
-  margin-top: 4px;
 }
 
 .vault-file-option {
@@ -299,8 +311,10 @@
   word-break: break-all;
 }
 
-.vault-file-option:hover {
-  background: var(--input-bg);
+.vault-file-option:hover,
+.vault-file-option.active {
+  background: var(--accent);
+  color: #fff;
 }
 
 .vault-file-create {
@@ -315,20 +329,27 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 4px;
-  border-top: 1px solid var(--border);
   margin-top: 4px;
+}
+
+.inbox-btn-primary,
+.inbox-btn-secondary,
+.inbox-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
 }
 
 .inbox-btn-primary {
   background: var(--accent);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 8px 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s;
 }
 
 .inbox-btn-primary:hover {
@@ -339,11 +360,6 @@
   background: none;
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
 }
 
 .inbox-btn-secondary:hover {
@@ -355,11 +371,6 @@
   background: none;
   color: var(--danger);
   border: 1px solid var(--danger);
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.15s;
 }
 
 .inbox-btn-danger:hover {

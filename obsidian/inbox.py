@@ -67,10 +67,18 @@ class Inbox(ObsidianBase):
         except FileNotFoundError:
             return []
 
+        inbox_rel = os.path.relpath(self.inbox_file, self.vault_path).replace(os.sep, "/")
+        inbox_file = os.path.basename(self.inbox_file)
+        inbox_top = inbox_rel.split("/")[0]
+
         items = []
         for i, line in enumerate(lines):
             if self.TASK_PATTERN.search(line):
-                items.append(self._parse_line(line, i))
+                item = self._parse_line(line, i)
+                item["rel_path"] = inbox_rel
+                item["file"] = inbox_file
+                item["top_folder"] = inbox_top
+                items.append(item)
 
         logger.info(f"Fetched {len(items)} inbox items")
         return items
@@ -123,6 +131,22 @@ class Inbox(ObsidianBase):
             f.write(line)
         logger.info(f"Added inbox item: {line.strip()}")
         return line
+
+    def list_vault_tags(self):
+        tags = set()
+        for path in self._walk_md_files():
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if not self.TASK_PATTERN.search(line):
+                            continue
+                        for m in self.TAG_PATTERN.finditer(line):
+                            name = m.group(1)
+                            if name not in ("todo",) and name[0].isalpha():
+                                tags.add(m.group(0))
+            except Exception:
+                pass
+        return sorted(tags)
 
     def list_vault_files(self):
         archive_rel = (

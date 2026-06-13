@@ -1,10 +1,14 @@
+let nextTasksData = {};
+let upcomingTasksData = {};
+
 async function loadNextTasks() {
   const list = document.getElementById('next-tasks-list');
   list.innerHTML = loadingHtml();
   try {
     const res = await fetch('/next-tasks');
     const data = await res.json();
-    const tasks = data.tasks;
+    nextTasksData = data.tasks;
+    const tasks = nextTasksData;
     const ids = Object.keys(tasks);
     if (ids.length === 0) {
       list.innerHTML = '<div class="empty-state">No #next tasks.</div>';
@@ -13,16 +17,12 @@ async function loadNextTasks() {
     list.innerHTML = ids.map(id => {
       const t = tasks[id];
       const text = cleanTaskText(t.task);
-      const contextTags = extractContextTags(t.task);
-      const contextBadges = contextTags.map(tag => `<span class="badge context">${escapeHtml(tag)}</span>`).join('');
-      const fileBadge = t.rel_path
-        ? `<span class="badge file" style="${folderBadgeStyle(t.top_folder)};cursor:pointer" data-path="${escapeHtml(t.rel_path)}" onclick="openObsidianFile(this.dataset.path)">${escapeHtml(t.file)}</span>`
-        : `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
+      const { html: badges, cls } = renderTaskBadges({ ...t, tags: extractTags(t.task).filter(tag => tag !== '#next') });
       return `
-        <div class="task-item" id="next-task-${id}">
-          <div class="task-body">
+        <div class="task-item${cls}" id="next-task-${id}">
+          <div class="task-body" style="cursor:pointer" onclick="openTaskPopup(nextTasksData['${id}'], 'next')">
             <div class="task-text">${renderText(text)}</div>
-            <div class="task-meta">${contextBadges}${fileBadge}</div>
+            <div class="task-meta">${badges}</div>
           </div>
         </div>`;
     }).join('');
@@ -37,7 +37,8 @@ async function loadUpcomingTasks() {
   try {
     const res = await fetch('/upcoming-tasks');
     const data = await res.json();
-    const tasks = data.tasks;
+    upcomingTasksData = data.tasks;
+    const tasks = upcomingTasksData;
     let ids = Object.keys(tasks);
     if (ids.length === 0) {
       list.innerHTML = '<div class="empty-state">No upcoming tasks.</div>';
@@ -47,15 +48,12 @@ async function loadUpcomingTasks() {
     list.innerHTML = ids.map(id => {
       const t = tasks[id];
       const text = cleanTaskText(t.task);
-      const dateBadge = `<span class="badge time">📅 ${t.happens}</span>`;
-      const fileBadge = t.rel_path
-        ? `<span class="badge file" style="${folderBadgeStyle(t.top_folder)};cursor:pointer" data-path="${escapeHtml(t.rel_path)}" onclick="openObsidianFile(this.dataset.path)">${escapeHtml(t.file)}</span>`
-        : `<span class="badge file" style="${folderBadgeStyle(t.top_folder)}">${escapeHtml(t.file)}</span>`;
+      const { html: badges, cls } = renderTaskBadges(t);
       return `
-        <div class="task-item" id="upcoming-task-${id}">
-          <div class="task-body">
+        <div class="task-item${cls}" id="upcoming-task-${id}">
+          <div class="task-body" style="cursor:pointer" onclick="openTaskPopup(upcomingTasksData['${id}'], 'upcoming')">
             <div class="task-text">${renderText(text)}</div>
-            <div class="task-meta">${dateBadge}${fileBadge}</div>
+            <div class="task-meta">${badges}</div>
           </div>
         </div>`;
     }).join('');

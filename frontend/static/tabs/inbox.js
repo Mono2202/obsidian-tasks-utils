@@ -65,19 +65,15 @@ function renderInboxItems() {
   }
 
   list.innerHTML = items.map(item => {
-    const tags = item.tags.map(t => `<span class="badge context">${escapeHtml(t)}</span>`).join('');
-    const dueBadge = item.due ? `<span class="badge due">📅 ${item.due}</span>` : '';
-    const schedBadge = item.scheduled ? `<span class="badge scheduled">⏳ ${item.scheduled}</span>` : '';
-    const timeBadge = item.time ? `<span class="badge time">@ ${item.time}</span>` : '';
-    const recurBadge = item.recur ? `<span class="badge recur">🔁 ${item.recur}</span>` : '';
+    const { html: badges, cls } = renderTaskBadges({ ...item, rel_path: null, file: null });
     const id = escapeHtml(item.id);
     return `
-      <div class="task-item inbox-item" id="inbox-item-${id}">
+      <div class="task-item inbox-item${cls}" id="inbox-item-${id}">
         <input type="checkbox" class="task-checkbox" title="Complete and move to tasks"
           onchange="completeInboxItem('${id}')" />
         <div class="task-body" style="cursor:pointer" onclick="openInboxPopup('${id}')">
           <div class="task-text">${item.description ? escapeHtml(item.description) : '<span style="color:var(--text-muted)">(no description)</span>'}</div>
-          <div class="task-meta">${tags}${dueBadge}${schedBadge}${timeBadge}${recurBadge}</div>
+          <div class="task-meta">${badges}</div>
         </div>
       </div>`;
   }).join('');
@@ -137,6 +133,7 @@ function openObsidianInbox() {
 function openInboxPopup(id) {
   currentInboxItem = inboxItems.find(i => i.id === id);
   if (!currentInboxItem) return;
+  _ensureVaultTags();
 
   document.getElementById('popup-description').value = currentInboxItem.description || '';
   document.getElementById('popup-due').value = currentInboxItem.due || '';
@@ -151,7 +148,10 @@ function openInboxPopup(id) {
   _renderPopupTags();
 
   document.getElementById('inbox-modal').style.display = 'flex';
-  document.getElementById('popup-description').focus();
+  const descEl = document.getElementById('popup-description');
+  descEl.style.height = 'auto';
+  descEl.style.height = descEl.scrollHeight + 'px';
+  descEl.focus();
 }
 
 function closeInboxPopup(e) {
@@ -173,7 +173,7 @@ function _renderPopupTags() {
   container.querySelectorAll('.inbox-tag-chip').forEach(el => el.remove());
   popupTags.forEach((tag, i) => {
     const chip = document.createElement('span');
-    chip.className = 'badge context inbox-tag-chip';
+    chip.className = `badge ${tagBadgeClass(tag)} inbox-tag-chip`;
     chip.innerHTML = `${escapeHtml(tag)} <button class="inbox-tag-remove" type="button" onclick="removePopupTag(${i})">×</button>`;
     container.insertBefore(chip, input);
   });
@@ -185,19 +185,43 @@ function removePopupTag(index) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const descEl = document.getElementById('popup-description');
+  if (descEl) {
+    descEl.addEventListener('input', function () {
+      this.style.height = 'auto';
+      this.style.height = this.scrollHeight + 'px';
+    });
+  }
+
   const tagInput = document.getElementById('popup-tag-input');
   if (!tagInput) return;
+  const onSelectInboxTag = tag => {
+    if (!popupTags.includes(tag)) { popupTags.push(tag); _renderPopupTags(); }
+    tagInput.value = '';
+    _hideTagSuggestions();
+  };
+  tagInput.addEventListener('input', () => _showTagSuggestions(tagInput, onSelectInboxTag));
   tagInput.addEventListener('keydown', e => {
+    if (_tagInputKeydown(e, tagInput, onSelectInboxTag)) return;
     if (e.key !== 'Enter' && e.key !== ',') return;
     e.preventDefault();
     const val = tagInput.value.trim().replace(/^#+/, '');
     if (!val) return;
-    const tag = '#' + val;
-    if (!popupTags.includes(tag)) {
-      popupTags.push(tag);
-      _renderPopupTags();
+    onSelectInboxTag('#' + val);
+  });
+
+  document.addEventListener('keydown', e => {
+    const modal = document.getElementById('inbox-modal');
+    if (!modal || modal.style.display === 'none') return;
+
+    if (e.key === 'Escape') {
+      _closeInboxPopup();
+    } else if (e.key === 'Enter') {
+      const id = e.target.id;
+      if (id === 'popup-tag-input' || id === 'popup-target') return;
+      e.preventDefault();
+      saveInboxItem();
     }
-    tagInput.value = '';
   });
 
   document.addEventListener('click', e => {
@@ -207,6 +231,34 @@ document.addEventListener('DOMContentLoaded', () => {
       dropdown.style.display = 'none';
     }
   });
+
+  const targetInput = document.getElementById('popup-target');
+  if (targetInput) {
+    targetInput.addEventListener('keydown', e => {
+      const dropdown = document.getElementById('vault-files-dropdown');
+      if (!dropdown || dropdown.style.display === 'none') return;
+      const items = dropdown.querySelectorAll('.vault-file-option');
+      if (!items.length) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        _vaultDropdownIndex = Math.min(_vaultDropdownIndex + 1, items.length - 1);
+        _highlightVaultItem(_vaultDropdownIndex);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        _vaultDropdownIndex = Math.max(_vaultDropdownIndex - 1, -1);
+        _highlightVaultItem(_vaultDropdownIndex);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (_vaultDropdownIndex >= 0 && items[_vaultDropdownIndex]) {
+          items[_vaultDropdownIndex].click();
+        }
+      } else if (e.key === 'Escape') {
+        dropdown.style.display = 'none';
+        _vaultDropdownIndex = -1;
+      }
+    });
+  }
 });
 
 // ── Build task line ───────────────────────────────────────────────────────────
@@ -345,6 +397,14 @@ async function completeInboxItem(id) {
   }
 }
 
+let _vaultDropdownIndex = -1;
+
+function _highlightVaultItem(index) {
+  const items = document.querySelectorAll('#vault-files-dropdown .vault-file-option');
+  items.forEach((el, i) => el.classList.toggle('active', i === index));
+  if (items[index]) items[index].scrollIntoView({ block: 'nearest' });
+}
+
 // ── Vault autocomplete ────────────────────────────────────────────────────────
 
 async function _loadVaultFiles() {
@@ -359,6 +419,15 @@ async function _loadVaultFiles() {
 
 function showVaultDropdown() {
   filterVaultFiles();
+}
+
+function _positionVaultDropdown() {
+  const input = document.getElementById('popup-target');
+  const dropdown = document.getElementById('vault-files-dropdown');
+  const rect = input.getBoundingClientRect();
+  dropdown.style.top = (rect.bottom + 4) + 'px';
+  dropdown.style.left = rect.left + 'px';
+  dropdown.style.width = rect.width + 'px';
 }
 
 function filterVaultFiles() {
@@ -380,6 +449,8 @@ function filterVaultFiles() {
       .map(f => `<div class="vault-file-option" onclick="selectVaultFile('${escapeHtml(f)}')">${escapeHtml(f)}</div>`)
       .join('');
   }
+  _vaultDropdownIndex = -1;
+  _positionVaultDropdown();
   dropdown.style.display = 'block';
 }
 

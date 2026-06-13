@@ -3,8 +3,12 @@ let _filteredSuggestions = [];
 let _workoutRecords = {};
 
 let _restDuration = parseInt(localStorage.getItem('restTimerDuration') || '90');
+let _restFullDuration = _restDuration;
 let _restRemaining = 0;
 let _restInterval = null;
+
+const _REST_END_KEY  = 'restTimerEndTime';
+const _REST_DUR_KEY  = 'restTimerFullDuration';
 
 function _adjustRestDuration(delta) {
   _restDuration = Math.max(15, Math.min(600, _restDuration + delta));
@@ -24,24 +28,45 @@ function _updateRestDisplay() {
   document.getElementById('rest-timer-display').textContent =
     `${m}:${String(s).padStart(2,'0')}`;
   document.getElementById('rest-timer-bar').style.width =
-    `${(_restRemaining / _restDuration) * 100}%`;
+    `${Math.max(0, (_restRemaining / _restFullDuration) * 100)}%`;
+}
+
+function _startTimerFromEndTime(endTime) {
+  if (_restInterval) { clearInterval(_restInterval); _restInterval = null; }
+  _updateRestDurLabel();
+  document.getElementById('rest-timer-section').style.display = 'block';
+
+  const tick = () => {
+    _restRemaining = Math.round((endTime - Date.now()) / 1000);
+    if (_restRemaining <= 0) {
+      clearInterval(_restInterval);
+      _restInterval = null;
+      localStorage.removeItem(_REST_END_KEY);
+      _restTimerDone();
+      return;
+    }
+    _updateRestDisplay();
+  };
+  tick();
+  _restInterval = setInterval(tick, 500);
 }
 
 function startRestTimer() {
   stopRestTimer();
-  _restRemaining = _restDuration;
-  _updateRestDurLabel();
-  _updateRestDisplay();
-  document.getElementById('rest-timer-section').style.display = 'block';
-  _restInterval = setInterval(() => {
-    _restRemaining--;
-    _updateRestDisplay();
-    if (_restRemaining <= 0) {
-      clearInterval(_restInterval);
-      _restInterval = null;
-      _restTimerDone();
-    }
-  }, 1000);
+  _restFullDuration = _restDuration;
+  const endTime = Date.now() + _restDuration * 1000;
+  localStorage.setItem(_REST_END_KEY, endTime);
+  localStorage.setItem(_REST_DUR_KEY, _restDuration);
+  _startTimerFromEndTime(endTime);
+}
+
+function _resumeRestTimer() {
+  const endTime = parseInt(localStorage.getItem(_REST_END_KEY) || '0');
+  if (!endTime) return;
+  const remaining = Math.round((endTime - Date.now()) / 1000);
+  if (remaining <= 0) { localStorage.removeItem(_REST_END_KEY); return; }
+  _restFullDuration = parseInt(localStorage.getItem(_REST_DUR_KEY) || _restDuration);
+  _startTimerFromEndTime(endTime);
 }
 
 function resetRestTimer() { startRestTimer(); }
@@ -67,6 +92,7 @@ function _restTimerDone() {
 
 function stopRestTimer() {
   if (_restInterval) { clearInterval(_restInterval); _restInterval = null; }
+  localStorage.removeItem(_REST_END_KEY);
   const section = document.getElementById('rest-timer-section');
   section.style.display = 'none';
   section.style.opacity = '1';
@@ -451,6 +477,7 @@ function loadWorkoutTab() {
   loadWorkoutHistory();
   loadWorkoutRecords();
   _loadExerciseSuggestions();
+  _resumeRestTimer();
   const nameInput = document.getElementById('workout-name');
   nameInput.addEventListener('input', e => _showSuggestions(e.target.value));
   nameInput.addEventListener('blur', () => setTimeout(_hideSuggestions, 150));
