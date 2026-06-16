@@ -14,7 +14,7 @@ function _adjustRestDuration(delta) {
   _restDuration = Math.max(15, Math.min(600, _restDuration + delta));
   localStorage.setItem('restTimerDuration', _restDuration);
   _updateRestDurLabel();
-  if (_restInterval) { stopRestTimer(); startRestTimer(); }
+  if (_restInterval) { startRestTimer(); }
 }
 
 function _updateRestDurLabel() {
@@ -52,12 +52,17 @@ function _startTimerFromEndTime(endTime) {
 }
 
 function startRestTimer() {
-  stopRestTimer();
+  if (_restInterval) { clearInterval(_restInterval); _restInterval = null; }
   _restFullDuration = _restDuration;
   const endTime = Date.now() + _restDuration * 1000;
   localStorage.setItem(_REST_END_KEY, endTime);
   localStorage.setItem(_REST_DUR_KEY, _restDuration);
   _startTimerFromEndTime(endTime);
+  fetch('/workout/rest-start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ duration: _restDuration }),
+  }).catch(() => {});
 }
 
 function _resumeRestTimer() {
@@ -77,7 +82,6 @@ function _restTimerDone() {
   section.classList.add('rest-timer-done');
   document.getElementById('rest-timer-display').textContent = 'Go! 💪';
   document.getElementById('rest-timer-bar').style.width = '0%';
-  fetch('/workout/rest-done', { method: 'POST' }).catch(() => {});
   setTimeout(() => {
     section.style.transition = 'opacity 0.6s';
     section.style.opacity = '0';
@@ -93,6 +97,7 @@ function _restTimerDone() {
 function stopRestTimer() {
   if (_restInterval) { clearInterval(_restInterval); _restInterval = null; }
   localStorage.removeItem(_REST_END_KEY);
+  fetch('/workout/rest-cancel', { method: 'POST' }).catch(() => {});
   const section = document.getElementById('rest-timer-section');
   section.style.display = 'none';
   section.style.opacity = '1';

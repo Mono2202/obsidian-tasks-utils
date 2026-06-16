@@ -402,7 +402,36 @@
   }
 
   .inbox-modal-card {
-    padding: 16px;
-    gap: 12px;
+    max-width: 100%;
+    padding: 12px;
+    gap: 10px;
+    max-height: 95vh;
+  }
+
+  .inbox-modal-header {
+    gap: 8px;
+  }
+
+  .inbox-close-btn,
+  .refresh-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .inbox-label {
+    font-size: 0.7rem;
+  }
+
+  .inbox-textarea,
+  .inbox-date-input,
+  select,
+  input[type="time"] {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+
+  .inbox-fields-row .inbox-field {
+    min-width: 0;
   }
 }

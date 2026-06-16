@@ -1,6 +1,8 @@
 from datetime import date
 from flask import Blueprint, jsonify, request
 
+from backend.notifications import rest_timer
+
 
 def create_workout_blueprint(obsidian, logger, pushover=None):
     bp = Blueprint('workout', __name__)
@@ -67,18 +69,24 @@ def create_workout_blueprint(obsidian, logger, pushover=None):
             logger.error(f"Failed to fetch progress for {exercise}: {e}")
             return jsonify({'error': str(e)}), 500
 
-    @bp.route('/workout/rest-done', methods=['POST'])
-    def rest_done():
+    @bp.route('/workout/rest-start', methods=['POST'])
+    def rest_start():
+        data = request.json or {}
+        duration = data.get('duration')
+        if not duration:
+            return jsonify({'error': 'duration is required'}), 400
         try:
             if pushover:
-                pushover.send_message(
-                    message="Rest time is up — time for your next set! 💪",
-                    title="Workout Timer"
-                )
+                rest_timer.start(int(duration), pushover)
             return jsonify({'status': 'ok'})
         except Exception as e:
-            logger.error(f"Failed to send rest timer notification: {e}")
+            logger.error(f"Failed to start rest timer: {e}")
             return jsonify({'error': str(e)}), 500
+
+    @bp.route('/workout/rest-cancel', methods=['POST'])
+    def rest_cancel():
+        rest_timer.cancel()
+        return jsonify({'status': 'ok'})
 
     @bp.route('/workout/records', methods=['GET'])
     def workout_records():
