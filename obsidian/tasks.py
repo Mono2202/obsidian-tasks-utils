@@ -305,6 +305,26 @@ class Tasks(ObsidianBase):
             f.write(new_line if new_line.endswith("\n") else new_line + "\n")
         logger.info(f"Added next task to {file_path}: {new_line.strip()}")
 
+    def delete_task(self, file_path, raw_line):
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        if raw_line not in content:
+            raise ValueError("Task not found in file")
+        content = content.replace(raw_line, "", 1)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        logger.info(f"Deleted task from {file_path}: {raw_line.strip()}")
+
+    def move_task_to_file(self, file_path, raw_line, line_to_write, target_abs_path):
+        self.delete_task(file_path, raw_line)
+        dir_path = os.path.dirname(target_abs_path)
+        if dir_path:
+            os.makedirs(dir_path, exist_ok=True)
+        line = line_to_write if line_to_write.endswith("\n") else line_to_write + "\n"
+        with open(target_abs_path, "a", encoding="utf-8") as f:
+            f.write(line)
+        logger.info(f"Moved task to {target_abs_path}: {raw_line.strip()}")
+
     def update_task(self, file_path, raw_line, new_line):
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()

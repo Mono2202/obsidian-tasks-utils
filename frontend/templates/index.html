@@ -69,8 +69,9 @@
     {% include 'tabs/finance.html' %}
   </div>
 
-  <!-- Shared tag autocomplete dropdown -->
+  <!-- Shared dropdowns (position:fixed, shared between all popups) -->
   <div id="tag-suggestions-dropdown" class="vault-files-dropdown" style="display:none"></div>
+  <div id="vault-files-dropdown" class="vault-files-dropdown" style="display:none"></div>
 
   <!-- Next action modal -->
   <div id="next-action-modal" class="inbox-modal-overlay" style="display:none" onclick="closeNextActionModal(event)">
@@ -207,15 +208,44 @@
         </div>
       </div>
 
+      <div class="inbox-field" style="position:relative">
+        <label class="inbox-label">
+          Move to page
+          <span class="inbox-label-hint">(leave empty → Imploding Tasks)</span>
+        </label>
+        <input
+          type="text"
+          id="task-popup-target"
+          placeholder="Start typing a page name..."
+          autocomplete="off"
+          oninput="_showVaultFileSuggestions(this)"
+          onfocus="_showVaultFileSuggestions(this)"
+        />
+      </div>
+
       <div class="inbox-modal-actions">
-        <span></span>
-        <button class="inbox-btn-primary" onclick="saveTaskPopup()" title="Save">
+        <button class="inbox-btn-danger" onclick="deleteTaskPopup()" title="Delete">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-            <polyline points="17 21 17 13 7 13 7 21"/>
-            <polyline points="7 3 7 8 15 8"/>
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
           </svg>
         </button>
+        <div style="display:flex;gap:8px">
+          <button class="inbox-btn-secondary" onclick="saveTaskPopup()" title="Save">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+          </button>
+          <button class="inbox-btn-primary" onclick="moveTaskPopup()" title="Move to page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>

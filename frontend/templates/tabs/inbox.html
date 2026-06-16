@@ -111,10 +111,9 @@
         id="popup-target"
         placeholder="Start typing a page name..."
         autocomplete="off"
-        oninput="filterVaultFiles()"
-        onfocus="showVaultDropdown()"
+        oninput="_showVaultFileSuggestions(this)"
+        onfocus="_showVaultFileSuggestions(this)"
       />
-      <div id="vault-files-dropdown" class="vault-files-dropdown" style="display:none"></div>
     </div>
 
     <div class="inbox-modal-actions">

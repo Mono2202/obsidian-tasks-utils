@@ -4,7 +4,6 @@ let inboxItems = [];
 let currentInboxItem = null;
 let inboxSortNewest = true;
 let inboxRelPath = null;
-let vaultFiles = [];
 let popupTags = [];
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
@@ -19,7 +18,7 @@ async function loadInboxItems() {
     inboxRelPath = data.inbox_rel_path;
     _updateInboxBadge(inboxItems.length);
     renderInboxItems();
-    if (vaultFiles.length === 0) _loadVaultFiles();
+    _ensureVaultFiles();
   } catch (e) {
     list.innerHTML = `<div class="empty-state" style="color:var(--danger)">Failed to load inbox.</div>`;
   }
@@ -143,6 +142,7 @@ function openInboxPopup(id) {
   document.getElementById('popup-recur').value = currentInboxItem.recur || '';
   document.getElementById('popup-target').value = '';
   document.getElementById('vault-files-dropdown').style.display = 'none';
+  _ensureVaultFiles();
 
   popupTags = [...currentInboxItem.tags];
   _renderPopupTags();
@@ -224,40 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.addEventListener('click', e => {
-    const dropdown = document.getElementById('vault-files-dropdown');
-    const input = document.getElementById('popup-target');
-    if (dropdown && input && !dropdown.contains(e.target) && e.target !== input) {
-      dropdown.style.display = 'none';
-    }
-  });
-
   const targetInput = document.getElementById('popup-target');
   if (targetInput) {
-    targetInput.addEventListener('keydown', e => {
-      const dropdown = document.getElementById('vault-files-dropdown');
-      if (!dropdown || dropdown.style.display === 'none') return;
-      const items = dropdown.querySelectorAll('.vault-file-option');
-      if (!items.length) return;
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        _vaultDropdownIndex = Math.min(_vaultDropdownIndex + 1, items.length - 1);
-        _highlightVaultItem(_vaultDropdownIndex);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        _vaultDropdownIndex = Math.max(_vaultDropdownIndex - 1, -1);
-        _highlightVaultItem(_vaultDropdownIndex);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (_vaultDropdownIndex >= 0 && items[_vaultDropdownIndex]) {
-          items[_vaultDropdownIndex].click();
-        }
-      } else if (e.key === 'Escape') {
-        dropdown.style.display = 'none';
-        _vaultDropdownIndex = -1;
-      }
-    });
+    targetInput.addEventListener('input', () => _showVaultFileSuggestions(targetInput));
+    targetInput.addEventListener('focus', () => _showVaultFileSuggestions(targetInput));
+    targetInput.addEventListener('keydown', e => _vaultFileInputKeydown(e));
   }
 });
 
@@ -397,64 +368,3 @@ async function completeInboxItem(id) {
   }
 }
 
-let _vaultDropdownIndex = -1;
-
-function _highlightVaultItem(index) {
-  const items = document.querySelectorAll('#vault-files-dropdown .vault-file-option');
-  items.forEach((el, i) => el.classList.toggle('active', i === index));
-  if (items[index]) items[index].scrollIntoView({ block: 'nearest' });
-}
-
-// ── Vault autocomplete ────────────────────────────────────────────────────────
-
-async function _loadVaultFiles() {
-  try {
-    const res = await fetch('/vault-files');
-    const data = await res.json();
-    vaultFiles = data.files;
-  } catch (_) {
-    vaultFiles = [];
-  }
-}
-
-function showVaultDropdown() {
-  filterVaultFiles();
-}
-
-function _positionVaultDropdown() {
-  const input = document.getElementById('popup-target');
-  const dropdown = document.getElementById('vault-files-dropdown');
-  const rect = input.getBoundingClientRect();
-  dropdown.style.top = (rect.bottom + 4) + 'px';
-  dropdown.style.left = rect.left + 'px';
-  dropdown.style.width = rect.width + 'px';
-}
-
-function filterVaultFiles() {
-  const input = document.getElementById('popup-target');
-  const dropdown = document.getElementById('vault-files-dropdown');
-  const val = input.value.trim().toLowerCase();
-
-  if (!val) {
-    dropdown.style.display = 'none';
-    return;
-  }
-
-  const matches = vaultFiles.filter(f => f.toLowerCase().includes(val)).slice(0, 12);
-
-  if (matches.length === 0) {
-    dropdown.innerHTML = `<div class="vault-file-option vault-file-create" onclick="selectVaultFile(document.getElementById('popup-target').value.trim())">✨ Create: ${escapeHtml(input.value)}</div>`;
-  } else {
-    dropdown.innerHTML = matches
-      .map(f => `<div class="vault-file-option" onclick="selectVaultFile('${escapeHtml(f)}')">${escapeHtml(f)}</div>`)
-      .join('');
-  }
-  _vaultDropdownIndex = -1;
-  _positionVaultDropdown();
-  dropdown.style.display = 'block';
-}
-
-function selectVaultFile(path) {
-  document.getElementById('popup-target').value = path;
-  document.getElementById('vault-files-dropdown').style.display = 'none';
-}
