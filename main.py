@@ -6,7 +6,7 @@ import dotenv
 from flask import Flask, render_template, send_from_directory
 
 from backend.logger import get_logger
-from backend.notifications import reminder
+from backend.notifications import reminder, rest_timer
 from backend.notifications.pushover import Pushover
 from backend.routes.tasks import create_tasks_blueprint
 from backend.routes.habits import create_habits_blueprint
@@ -46,6 +46,7 @@ vault = Vault(vault_path=os.getenv("OBSIDIAN_VAULT_PATH"), spotify=_spotify)
 pushover = Pushover(api_token=os.getenv("PUSHOVER_API_TOKEN"), user_key=os.getenv("PUSHOVER_USER_KEY"))
 
 tasks_store = {}
+rest_timer.start(pushover)
 reminder.start(vault.tasks, vault.habits, vault.inbox, pushover, tasks_store, interval=FETCH_TASKS_INTERVAL,
                daily_summary_time=os.getenv("DAILY_SUMMARY_TIME", ""),
                habits_reminder_time=os.getenv("DAILY_HABITS_TIME", ""))
