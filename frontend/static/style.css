@@ -155,6 +155,8 @@ h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-m
   font-size: 0.95rem;
   line-height: 1.4;
   word-break: break-word;
+  unicode-bidi: plaintext;
+  text-align: start;
 }
 
 .task-text a { color: var(--accent); text-decoration: none; }

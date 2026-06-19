@@ -715,6 +715,8 @@ async function saveTaskPopup() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input[type="text"], textarea').forEach(el => el.setAttribute('dir', 'auto'));
+
   const tagInput = document.getElementById('task-popup-tag-input');
   if (tagInput) {
     const onSelect = tag => {
