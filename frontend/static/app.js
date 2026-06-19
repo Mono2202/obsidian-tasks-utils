@@ -2,14 +2,37 @@
 
 const savedTheme = localStorage.getItem('theme') || 'catppuccin';
 document.documentElement.setAttribute('data-theme', savedTheme);
-document.addEventListener('DOMContentLoaded', () => updateThemeIcon(savedTheme));
+document.addEventListener('DOMContentLoaded', () => {
+  updateThemeIcon(savedTheme);
+  applyLogoGlow();
+});
 
 function updateThemeIcon(theme) {
   const icon = document.getElementById('theme-icon');
-  if (!icon) return;
-  if (theme === 'catppuccin') icon.src = '/assets/cat-theme.svg';
-  else if (theme === 'dark') icon.src = '/assets/dark-theme.svg';
-  else icon.src = '/assets/light-theme.svg';
+  if (icon) {
+    if (theme === 'catppuccin') icon.src = '/assets/cat-theme.svg';
+    else if (theme === 'dark') icon.src = '/assets/dark-theme.svg';
+    else icon.src = '/assets/light-theme.svg';
+  }
+
+  const logo = document.querySelector('.header-logo');
+  if (logo) {
+    logo.src = theme === 'catppuccin' ? '/assets/logo-catppuccin.png' : '/assets/logo.png';
+  }
+}
+
+function applyLogoGlow() {
+  const logo = document.querySelector('.header-logo');
+  if (!logo) return;
+  const glowOn = localStorage.getItem('logoGlow') !== 'off';
+  logo.classList.toggle('no-glow', !glowOn);
+}
+
+function toggleLogoGlow() {
+  const logo = document.querySelector('.header-logo');
+  if (!logo) return;
+  const glowOn = logo.classList.toggle('no-glow');
+  localStorage.setItem('logoGlow', glowOn ? 'off' : 'on');
 }
 
 function toggleTheme() {
