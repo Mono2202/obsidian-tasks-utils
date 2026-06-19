@@ -262,12 +262,15 @@ button[type="submit"] {
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 8px 18px;
+  padding: 8px 12px;
   font-size: 0.9rem;
   cursor: pointer;
   font-weight: 500;
   transition: background 0.15s;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 button[type="submit"]:hover { background: var(--accent-hover); }
 button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }

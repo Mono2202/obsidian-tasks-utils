@@ -197,6 +197,9 @@
   font-weight: 600;
   transition: background 0.15s;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .music-submit-btn:hover { background: var(--accent-hover); }
 .music-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }

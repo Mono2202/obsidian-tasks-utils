@@ -79,11 +79,14 @@
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 8px 16px;
+  padding: 8px 12px;
   cursor: pointer;
   font-size: 0.9rem;
   white-space: nowrap;
   transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .workout-add-btn:hover { background: var(--accent-hover); }
 
