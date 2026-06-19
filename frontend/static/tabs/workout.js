@@ -57,6 +57,11 @@ function startRestTimer() {
   const endTime = Date.now() + _restDuration * 1000;
   localStorage.setItem(_REST_END_KEY, endTime);
   localStorage.setItem(_REST_DUR_KEY, _restDuration);
+  fetch('/workout/rest-start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ end_time: endTime / 1000 }),
+  }).catch(() => {});
   _startTimerFromEndTime(endTime);
 }
 
@@ -93,6 +98,7 @@ function _restTimerDone() {
 function stopRestTimer() {
   if (_restInterval) { clearInterval(_restInterval); _restInterval = null; }
   localStorage.removeItem(_REST_END_KEY);
+  fetch('/workout/rest-cancel', { method: 'POST' }).catch(() => {});
   const section = document.getElementById('rest-timer-section');
   section.style.display = 'none';
   section.style.opacity = '1';

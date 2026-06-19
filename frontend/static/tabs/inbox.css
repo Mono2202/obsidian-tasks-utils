@@ -7,6 +7,12 @@
   flex-wrap: wrap;
 }
 
+#inbox-process-btn.inbox-process-btn--active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
 .inbox-obsidian-btn {
   display: inline-flex;
   align-items: center;
@@ -139,10 +145,19 @@
   max-width: 560px;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.inbox-modal-card input,
+.inbox-modal-card select,
+.inbox-modal-card textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .inbox-modal-header {
@@ -179,6 +194,12 @@
   border-color: var(--text-muted);
 }
 
+.inbox-close-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
 /* ── Fields ────────────────────────────────────────────────────────────────── */
 
 .inbox-field {
@@ -210,7 +231,7 @@
 
 .inbox-fields-row .inbox-field {
   flex: 1;
-  min-width: 120px;
+  min-width: 0;
 }
 
 .inbox-textarea {
@@ -393,10 +414,10 @@
 }
 
 .inbox-btn-danger:hover {
-  background: #4a1a1a;
+  background: #351524;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 560px) {
   .inbox-fields-row {
     flex-direction: column;
   }

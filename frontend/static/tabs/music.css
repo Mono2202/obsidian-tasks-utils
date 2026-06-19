@@ -162,8 +162,8 @@
   .star-rating { gap: 1px; }
 }
 
-.star.filled { color: #f5c518; }
-.star.hover  { color: #f5a623; }
+.star.filled { color: #f9e2af; }
+.star.hover  { color: #fab387; }
 
 .music-rating-text {
   font-size: 0.9rem;
@@ -197,6 +197,9 @@
   font-weight: 600;
   transition: background 0.15s;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .music-submit-btn:hover { background: var(--accent-hover); }
 .music-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }

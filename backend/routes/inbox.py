@@ -81,6 +81,29 @@ def create_inbox_blueprint(inbox, logger):
             logger.error(f"Failed to move inbox item: {e}")
             return jsonify({"error": str(e)}), 500
 
+    @bp.route("/inbox/done", methods=["POST"])
+    def done_inbox_item():
+        data = request.get_json() or {}
+        raw_line = data.get("raw_line")
+        new_line = data.get("new_line") or raw_line
+        target_path = (data.get("target_path") or "").strip()
+        if not raw_line:
+            return jsonify({"error": "raw_line required"}), 400
+        if not target_path:
+            target_abs = inbox.imploding_tasks_file
+        else:
+            if not target_path.endswith(".md"):
+                target_path += ".md"
+            target_abs = os.path.join(inbox.vault_path, target_path)
+        try:
+            inbox.done_inbox_item(raw_line, new_line, target_abs)
+            return jsonify({"status": "success"})
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            logger.error(f"Failed to complete inbox item: {e}")
+            return jsonify({"error": str(e)}), 500
+
     @bp.route("/inbox/complete", methods=["POST"])
     def complete_inbox_item():
         data = request.get_json() or {}

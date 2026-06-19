@@ -124,6 +124,9 @@
   font-weight: 600;
   transition: background 0.15s;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .food-submit-btn:hover { background: var(--accent-hover); }
 .food-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }

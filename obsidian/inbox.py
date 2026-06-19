@@ -1,10 +1,18 @@
 import os
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from backend.logger import get_logger
 from .base import ObsidianBase
+
+_RECUR_DELTAS = {
+    "every 2 days":  lambda: timedelta(days=2),
+    "every week":    lambda: timedelta(weeks=1),
+    "every 2 weeks": lambda: timedelta(weeks=2),
+    "every 3 weeks": lambda: timedelta(weeks=3),
+    "every month":   lambda: timedelta(days=30),
+}
 
 logger = get_logger(__name__)
 
@@ -116,6 +124,37 @@ class Inbox(ObsidianBase):
         with open(target_abs_path, "a", encoding="utf-8") as f:
             f.write(line)
         logger.info(f"Moved inbox item to {target_abs_path}: {line.strip()}")
+
+    def done_inbox_item(self, raw_line, new_line, target_abs_path):
+        today = datetime.now().strftime("%Y-%m-%d")
+        completed_line = new_line.rstrip("\n").replace("- [ ]", "- [x]", 1) + f" ✅ {today}\n"
+
+        recur_match = self.RECUR_PATTERN.search(new_line)
+        next_task_line = None
+        if recur_match:
+            recur_key = recur_match.group(1)
+            delta = _RECUR_DELTAS[recur_key]()
+            sched_match = self.SCHED_DATE_PATTERN.search(new_line)
+            due_match = self.DUE_DATE_PATTERN.search(new_line)
+            if sched_match:
+                old_date = sched_match.group(1)
+                new_date = (datetime.strptime(old_date, "%Y-%m-%d") + delta).strftime("%Y-%m-%d")
+                next_task_line = new_line.rstrip("\n").replace(f"⏳ {old_date}", f"⏳ {new_date}", 1) + "\n"
+            elif due_match:
+                old_date = due_match.group(1)
+                new_date = (datetime.strptime(old_date, "%Y-%m-%d") + delta).strftime("%Y-%m-%d")
+                next_task_line = new_line.rstrip("\n").replace(f"📅 {old_date}", f"📅 {new_date}", 1) + "\n"
+
+        self.delete_inbox_item(raw_line)
+
+        dir_path = os.path.dirname(target_abs_path)
+        if dir_path:
+            os.makedirs(dir_path, exist_ok=True)
+        with open(target_abs_path, "a", encoding="utf-8") as f:
+            if next_task_line:
+                f.write(next_task_line)
+            f.write(completed_line)
+        logger.info(f"Done inbox item → {target_abs_path}: {new_line.strip()}")
 
     def complete_inbox_item(self, raw_line):
         today = datetime.now().strftime("%Y-%m-%d")

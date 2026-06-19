@@ -1,19 +1,21 @@
 // ── Theme ────────────────────────────────────────────────────────────────────
 
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  document.addEventListener('DOMContentLoaded', () => updateThemeIcon(savedTheme));
-}
+const savedTheme = localStorage.getItem('theme') || 'catppuccin';
+document.documentElement.setAttribute('data-theme', savedTheme);
+document.addEventListener('DOMContentLoaded', () => updateThemeIcon(savedTheme));
 
 function updateThemeIcon(theme) {
   const icon = document.getElementById('theme-icon');
-  if (icon) icon.src = theme === 'dark' ? '/assets/dark-theme.svg' : '/assets/light-theme.svg';
+  if (!icon) return;
+  if (theme === 'catppuccin') icon.src = '/assets/cat-theme.svg';
+  else if (theme === 'dark') icon.src = '/assets/dark-theme.svg';
+  else icon.src = '/assets/light-theme.svg';
 }
 
 function toggleTheme() {
   const html = document.documentElement;
-  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  const current = html.getAttribute('data-theme');
+  const next = current === 'catppuccin' ? 'dark' : current === 'dark' ? 'light' : 'catppuccin';
   html.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
   updateThemeIcon(next);
@@ -169,6 +171,83 @@ function extractTags(raw) {
     .filter(t => t !== '#todo');
 }
 
+// ── Vault file autocomplete (shared) ─────────────────────────────────────────
+
+let vaultFiles = [];
+let _vaultDropdownActiveInput = null;
+let _vaultDropdownIndex = -1;
+
+async function _ensureVaultFiles() {
+  if (vaultFiles.length) return;
+  try {
+    const res = await fetch('/vault-files');
+    const data = await res.json();
+    vaultFiles = data.files;
+  } catch (_) {}
+}
+
+function _showVaultFileSuggestions(inputEl) {
+  _vaultDropdownActiveInput = inputEl;
+  _filterVaultFileSuggestions();
+}
+
+function _filterVaultFileSuggestions() {
+  const input = _vaultDropdownActiveInput;
+  const dropdown = document.getElementById('vault-files-dropdown');
+  if (!input || !dropdown) return;
+  const val = input.value.trim().toLowerCase();
+  if (!val) { dropdown.style.display = 'none'; return; }
+  const matches = vaultFiles.filter(f => f.toLowerCase().includes(val)).slice(0, 12);
+  _vaultDropdownIndex = -1;
+  dropdown.innerHTML = matches.length
+    ? matches.map(f => `<div class="vault-file-option" onclick="_selectVaultFile('${escapeHtml(f)}')">${escapeHtml(f)}</div>`).join('')
+    : `<div class="vault-file-option vault-file-create" onclick="_selectVaultFile(document.getElementById('${escapeHtml(input.id)}').value.trim())">✨ Create: ${escapeHtml(input.value)}</div>`;
+  const rect = input.getBoundingClientRect();
+  dropdown.style.top  = (rect.bottom + 4) + 'px';
+  dropdown.style.left = rect.left + 'px';
+  dropdown.style.width = rect.width + 'px';
+  dropdown.style.display = 'block';
+}
+
+function _selectVaultFile(path) {
+  if (_vaultDropdownActiveInput) _vaultDropdownActiveInput.value = path;
+  document.getElementById('vault-files-dropdown').style.display = 'none';
+  _vaultDropdownIndex = -1;
+}
+
+function _vaultFileInputKeydown(e) {
+  const dropdown = document.getElementById('vault-files-dropdown');
+  if (!dropdown || dropdown.style.display === 'none') return false;
+  const items = dropdown.querySelectorAll('.vault-file-option');
+  if (!items.length) return false;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _vaultDropdownIndex = Math.min(_vaultDropdownIndex + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('active', i === _vaultDropdownIndex));
+    items[_vaultDropdownIndex]?.scrollIntoView({ block: 'nearest' });
+    return true;
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _vaultDropdownIndex = Math.max(_vaultDropdownIndex - 1, -1);
+    items.forEach((el, i) => el.classList.toggle('active', i === _vaultDropdownIndex));
+    items[_vaultDropdownIndex]?.scrollIntoView({ block: 'nearest' });
+    return true;
+  }
+  if (e.key === 'Enter' && _vaultDropdownIndex >= 0) {
+    e.preventDefault();
+    _selectVaultFile(items[_vaultDropdownIndex].textContent.trim());
+    return true;
+  }
+  if (e.key === 'Escape') {
+    e.stopPropagation();
+    dropdown.style.display = 'none';
+    _vaultDropdownIndex = -1;
+    return true;
+  }
+  return false;
+}
+
 // ── Tag autocomplete ──────────────────────────────────────────────────────────
 
 let _vaultTags = [];
@@ -256,6 +335,7 @@ function tagBadgeClass(tag) {
   if (tag === '#backburner') return 'tag-backburner';
   if (tag === '#inline')     return 'tag-inline';
   if (tag === '#remind')     return 'tag-remind';
+  if (tag === '#buy')        return 'tag-buy';
   if (tag.startsWith('#context/')) return 'context';
   return 'tag-other';
 }
@@ -275,7 +355,7 @@ function renderTaskBadges(t) {
 
   const overdueLabel = overdue ? (t.due && t.due < today ? t.due : t.scheduled) : null;
   const overdueBadge  = overdue  ? `<span class="badge overdue">Overdue · ${_fmtDate(overdueLabel)}</span>` : '';
-  const startedBadge  = started  ? `<span class="badge started">🛫 ${_fmtDate(t.start)}</span>` : '';
+  const startedBadge  = t.start  ? `<span class="badge started">🛫 ${_fmtDate(t.start)}</span>` : '';
   const dueBadge      = !overdue && t.due       ? `<span class="badge due">📅 ${_fmtDate(t.due)}</span>` : '';
   const schedBadge    = !overdue && t.scheduled ? `<span class="badge scheduled">⏳ ${_fmtDate(t.scheduled)}</span>` : '';
   const timeBadge     = t.time  ? `<span class="badge time">@ ${t.time}</span>` : '';
@@ -284,6 +364,7 @@ function renderTaskBadges(t) {
   const tags = t.tags || extractTags(t.task || '');
   const tagBadges = tags.map(tag => {
     const cls = tag === '#next' ? 'tag-next'
+      : tag === '#buy' ? 'tag-buy'
       : tag.startsWith('#context/') ? 'context'
       : 'tag-other';
     return `<span class="badge ${cls}">${escapeHtml(tag)}</span>`;
@@ -472,6 +553,7 @@ function openTaskPopup(task, source) {
   _currentTask = task;
   _taskPopupSource = source;
   _ensureVaultTags();
+  _ensureVaultFiles();
 
   document.getElementById('task-popup-description').value = cleanTaskText(task.task);
   document.getElementById('task-popup-due').value = task.due || '';
@@ -480,6 +562,9 @@ function openTaskPopup(task, source) {
   document.getElementById('task-popup-time').value = task.time || '';
   document.getElementById('task-popup-recur').value = task.recur || '';
   document.getElementById('task-popup-obsidian-btn').dataset.relPath = task.rel_path || '';
+  const taskTarget = document.getElementById('task-popup-target');
+  if (taskTarget) { taskTarget.value = task.rel_path || ''; }
+  document.getElementById('vault-files-dropdown').style.display = 'none';
 
   _taskPopupTags = extractTags(task.task);
   _renderTaskPopupTags();
@@ -539,6 +624,71 @@ function _buildTaskNewLine() {
   return parts.join(' ') + '\n';
 }
 
+async function deleteTaskPopup() {
+  if (!_currentTask) return;
+  if (!confirm('Delete this task? This cannot be undone.')) return;
+  try {
+    const res = await fetch('/task/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rel_path: _currentTask.rel_path, raw_line: _currentTask.raw_line }),
+    });
+    if (res.ok) {
+      _closeTaskPopup();
+      if (_taskPopupSource === 'today') loadTasks();
+      else if (_taskPopupSource === 'next') loadNextTasks();
+      else if (_taskPopupSource === 'upcoming') loadUpcomingTasks();
+    } else {
+      const data = await res.json();
+      alert(data.error || 'Failed to delete.');
+    }
+  } catch (_) { alert('Request failed.'); }
+}
+
+async function doneTaskPopup() {
+  if (!_currentTask) return;
+  try {
+    const res = await fetch('/task/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rel_path: _currentTask.rel_path, raw_line: _currentTask.raw_line }),
+    });
+    if (res.ok) {
+      playCompletionFeedback();
+      _closeTaskPopup();
+      if (_taskPopupSource === 'today') loadTasks();
+      else if (_taskPopupSource === 'next') loadNextTasks();
+      else if (_taskPopupSource === 'upcoming') loadUpcomingTasks();
+    } else {
+      const data = await res.json();
+      alert(data.error || 'Failed to complete.');
+    }
+  } catch (_) { alert('Request failed.'); }
+}
+
+async function moveTaskPopup() {
+  if (!_currentTask) return;
+  const newLine = _buildTaskNewLine();
+  const targetPath = (document.getElementById('task-popup-target')?.value || '').trim();
+  try {
+    const res = await fetch('/task/move-to-file', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rel_path: _currentTask.rel_path, raw_line: _currentTask.raw_line, new_line: newLine, target_path: targetPath }),
+    });
+    if (res.ok) {
+      playCompletionFeedback();
+      _closeTaskPopup();
+      if (_taskPopupSource === 'today') loadTasks();
+      else if (_taskPopupSource === 'next') loadNextTasks();
+      else if (_taskPopupSource === 'upcoming') loadUpcomingTasks();
+    } else {
+      const data = await res.json();
+      alert(data.error || 'Failed to move.');
+    }
+  } catch (_) { alert('Request failed.'); }
+}
+
 async function saveTaskPopup() {
   if (!_currentTask) return;
   const newLine = _buildTaskNewLine();
@@ -567,6 +717,8 @@ async function saveTaskPopup() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input[type="text"], textarea').forEach(el => el.setAttribute('dir', 'auto'));
+
   const tagInput = document.getElementById('task-popup-tag-input');
   if (tagInput) {
     const onSelect = tag => {
@@ -585,6 +737,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const taskTargetInput = document.getElementById('task-popup-target');
+  if (taskTargetInput) {
+    taskTargetInput.addEventListener('input', () => _showVaultFileSuggestions(taskTargetInput));
+    taskTargetInput.addEventListener('focus', () => _showVaultFileSuggestions(taskTargetInput));
+    taskTargetInput.addEventListener('keydown', e => _vaultFileInputKeydown(e));
+  }
+
+  document.addEventListener('click', e => {
+    const dropdown = document.getElementById('vault-files-dropdown');
+    if (dropdown && !dropdown.contains(e.target) && e.target !== _vaultDropdownActiveInput) {
+      dropdown.style.display = 'none';
+    }
+  });
+
   const taskDesc = document.getElementById('task-popup-description');
   if (taskDesc) {
     taskDesc.addEventListener('input', function () {
@@ -601,6 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.key === 'Enter') {
       const id = e.target.id;
       if (id === 'task-popup-tag-input') return;
+      if (id === 'task-popup-description' && e.shiftKey) return;
       e.preventDefault();
       saveTaskPopup();
     }

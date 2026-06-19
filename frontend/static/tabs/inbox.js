@@ -4,10 +4,65 @@ let inboxItems = [];
 let currentInboxItem = null;
 let inboxSortNewest = true;
 let inboxRelPath = null;
-let vaultFiles = [];
 let popupTags = [];
+let processingMode = localStorage.getItem('inboxProcessingMode') === '1';
+let _processingStartCount = 0;
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
+
+function toggleProcessingMode() {
+  processingMode = !processingMode;
+  localStorage.setItem('inboxProcessingMode', processingMode ? '1' : '0');
+  if (processingMode) _processingStartCount = inboxItems.length;
+  _updateProcessingToggle();
+}
+
+function _updateProcessingToggle() {
+  const btn = document.getElementById('inbox-process-btn');
+  if (btn) btn.classList.toggle('inbox-process-btn--active', processingMode);
+}
+
+function _getSortedFilteredItems() {
+  const filterVal = (document.getElementById('inbox-filter').value || '').toLowerCase();
+  let items = [...inboxItems];
+  if (filterVal) items = items.filter(i =>
+    i.description.toLowerCase().includes(filterVal) ||
+    i.tags.some(t => t.toLowerCase().includes(filterVal))
+  );
+  if (inboxSortNewest) items = items.slice().reverse();
+  return items;
+}
+
+function _getNextItemId(currentId) {
+  const items = _getSortedFilteredItems();
+  const idx = items.findIndex(i => i.id === currentId);
+  if (idx === -1 || items.length <= 1) return null;
+  return idx < items.length - 1 ? items[idx + 1].id : items[idx - 1].id;
+}
+
+function _updateModalProgress() {
+  const titleEl = document.getElementById('inbox-modal-title');
+  if (!titleEl) return;
+  if (!processingMode || !_processingStartCount) { titleEl.textContent = 'Edit Item'; }
+  else {
+    const cleared = _processingStartCount - inboxItems.length;
+    titleEl.textContent = `${cleared} / ${_processingStartCount}`;
+  }
+  const items = _getSortedFilteredItems();
+  const idx = currentInboxItem ? items.findIndex(i => i.id === currentInboxItem.id) : -1;
+  const prev = document.getElementById('inbox-nav-prev');
+  const next = document.getElementById('inbox-nav-next');
+  if (prev) prev.disabled = idx <= 0;
+  if (next) next.disabled = idx < 0 || idx >= items.length - 1;
+}
+
+function _navigateInboxPopup(direction) {
+  if (!currentInboxItem) return;
+  const items = _getSortedFilteredItems();
+  const idx = items.findIndex(i => i.id === currentInboxItem.id);
+  if (direction === -1 && idx > 0) openInboxPopup(items[idx - 1].id);
+  if (direction === 1 && idx < items.length - 1) openInboxPopup(items[idx + 1].id);
+}
 
 async function loadInboxItems() {
   const list = document.getElementById('inbox-list');
@@ -19,7 +74,9 @@ async function loadInboxItems() {
     inboxRelPath = data.inbox_rel_path;
     _updateInboxBadge(inboxItems.length);
     renderInboxItems();
-    if (vaultFiles.length === 0) _loadVaultFiles();
+    _ensureVaultFiles();
+    _updateProcessingToggle();
+    if (processingMode) _processingStartCount = inboxItems.length;
   } catch (e) {
     list.innerHTML = `<div class="empty-state" style="color:var(--danger)">Failed to load inbox.</div>`;
   }
@@ -141,12 +198,15 @@ function openInboxPopup(id) {
   document.getElementById('popup-start').value = currentInboxItem.start || '';
   document.getElementById('popup-time').value = currentInboxItem.time || '';
   document.getElementById('popup-recur').value = currentInboxItem.recur || '';
-  document.getElementById('popup-target').value = '';
+  const isInboxItem = !currentInboxItem.rel_path || currentInboxItem.rel_path === inboxRelPath;
+  document.getElementById('popup-target').value = isInboxItem ? '' : (currentInboxItem.rel_path || '');
   document.getElementById('vault-files-dropdown').style.display = 'none';
+  _ensureVaultFiles();
 
   popupTags = [...currentInboxItem.tags];
   _renderPopupTags();
 
+  _updateModalProgress();
   document.getElementById('inbox-modal').style.display = 'flex';
   const descEl = document.getElementById('popup-description');
   descEl.style.height = 'auto';
@@ -216,48 +276,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (e.key === 'Escape') {
       _closeInboxPopup();
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      const tag = e.target.tagName.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      e.preventDefault();
+      const items = _getSortedFilteredItems();
+      const idx = items.findIndex(i => i.id === currentInboxItem?.id);
+      if (e.key === 'ArrowRight' && idx < items.length - 1) openInboxPopup(items[idx + 1].id);
+      if (e.key === 'ArrowLeft' && idx > 0) openInboxPopup(items[idx - 1].id);
     } else if (e.key === 'Enter') {
       const id = e.target.id;
       if (id === 'popup-tag-input' || id === 'popup-target') return;
+      if (id === 'popup-description' && e.shiftKey) return;
       e.preventDefault();
       saveInboxItem();
     }
   });
 
-  document.addEventListener('click', e => {
-    const dropdown = document.getElementById('vault-files-dropdown');
-    const input = document.getElementById('popup-target');
-    if (dropdown && input && !dropdown.contains(e.target) && e.target !== input) {
-      dropdown.style.display = 'none';
-    }
-  });
-
   const targetInput = document.getElementById('popup-target');
   if (targetInput) {
-    targetInput.addEventListener('keydown', e => {
-      const dropdown = document.getElementById('vault-files-dropdown');
-      if (!dropdown || dropdown.style.display === 'none') return;
-      const items = dropdown.querySelectorAll('.vault-file-option');
-      if (!items.length) return;
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        _vaultDropdownIndex = Math.min(_vaultDropdownIndex + 1, items.length - 1);
-        _highlightVaultItem(_vaultDropdownIndex);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        _vaultDropdownIndex = Math.max(_vaultDropdownIndex - 1, -1);
-        _highlightVaultItem(_vaultDropdownIndex);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (_vaultDropdownIndex >= 0 && items[_vaultDropdownIndex]) {
-          items[_vaultDropdownIndex].click();
-        }
-      } else if (e.key === 'Escape') {
-        dropdown.style.display = 'none';
-        _vaultDropdownIndex = -1;
-      }
-    });
+    targetInput.addEventListener('input', () => _showVaultFileSuggestions(targetInput));
+    targetInput.addEventListener('focus', () => _showVaultFileSuggestions(targetInput));
+    targetInput.addEventListener('keydown', e => _vaultFileInputKeydown(e));
   }
 });
 
@@ -322,10 +362,37 @@ async function saveInboxItem() {
   }
 }
 
+async function doneInboxItem() {
+  if (!currentInboxItem) return;
+  const newLine = _buildNewLine();
+  const targetPath = document.getElementById('popup-target').value.trim();
+  const nextId = _getNextItemId(currentInboxItem.id);
+  try {
+    const res = await fetch('/inbox/done', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ raw_line: currentInboxItem.raw_line, new_line: newLine, target_path: targetPath }),
+    });
+    if (res.ok) {
+      playCompletionFeedback();
+      inboxItems = inboxItems.filter(i => i.id !== currentInboxItem.id);
+      _updateInboxBadge(inboxItems.length);
+      renderInboxItems();
+      if (processingMode && nextId) { openInboxPopup(nextId); } else { _closeInboxPopup(); }
+    } else {
+      const data = await res.json();
+      alert(data.error || 'Failed to complete.');
+    }
+  } catch (_) {
+    alert('Request failed.');
+  }
+}
+
 async function moveInboxItem() {
   if (!currentInboxItem) return;
   const newLine = _buildNewLine();
   const targetPath = document.getElementById('popup-target').value.trim();
+  const nextId = _getNextItemId(currentInboxItem.id);
   try {
     const res = await fetch('/inbox/move', {
       method: 'POST',
@@ -337,7 +404,7 @@ async function moveInboxItem() {
       inboxItems = inboxItems.filter(i => i.id !== currentInboxItem.id);
       _updateInboxBadge(inboxItems.length);
       renderInboxItems();
-      _closeInboxPopup();
+      if (processingMode && nextId) { openInboxPopup(nextId); } else { _closeInboxPopup(); }
     } else {
       const data = await res.json();
       alert(data.error || 'Failed to move.');
@@ -350,6 +417,7 @@ async function moveInboxItem() {
 async function deleteInboxItem() {
   if (!currentInboxItem) return;
   if (!confirm('Delete this inbox item? This cannot be undone.')) return;
+  const nextId = _getNextItemId(currentInboxItem.id);
   try {
     const res = await fetch('/inbox/delete', {
       method: 'POST',
@@ -360,7 +428,7 @@ async function deleteInboxItem() {
       inboxItems = inboxItems.filter(i => i.id !== currentInboxItem.id);
       _updateInboxBadge(inboxItems.length);
       renderInboxItems();
-      _closeInboxPopup();
+      if (processingMode && nextId) { openInboxPopup(nextId); } else { _closeInboxPopup(); }
     } else {
       const data = await res.json();
       alert(data.error || 'Failed to delete.');
@@ -373,6 +441,7 @@ async function deleteInboxItem() {
 async function completeInboxItem(id) {
   const item = inboxItems.find(i => i.id === id);
   if (!item) return;
+  const nextId = _getNextItemId(id);
   const el = document.getElementById(`inbox-item-${id}`);
   if (el) el.style.opacity = '0.4';
   try {
@@ -386,6 +455,7 @@ async function completeInboxItem(id) {
       inboxItems = inboxItems.filter(i => i.id !== id);
       _updateInboxBadge(inboxItems.length);
       renderInboxItems();
+      if (processingMode && nextId) openInboxPopup(nextId);
     } else {
       if (el) el.style.opacity = '';
       const data = await res.json();
@@ -397,64 +467,3 @@ async function completeInboxItem(id) {
   }
 }
 
-let _vaultDropdownIndex = -1;
-
-function _highlightVaultItem(index) {
-  const items = document.querySelectorAll('#vault-files-dropdown .vault-file-option');
-  items.forEach((el, i) => el.classList.toggle('active', i === index));
-  if (items[index]) items[index].scrollIntoView({ block: 'nearest' });
-}
-
-// ── Vault autocomplete ────────────────────────────────────────────────────────
-
-async function _loadVaultFiles() {
-  try {
-    const res = await fetch('/vault-files');
-    const data = await res.json();
-    vaultFiles = data.files;
-  } catch (_) {
-    vaultFiles = [];
-  }
-}
-
-function showVaultDropdown() {
-  filterVaultFiles();
-}
-
-function _positionVaultDropdown() {
-  const input = document.getElementById('popup-target');
-  const dropdown = document.getElementById('vault-files-dropdown');
-  const rect = input.getBoundingClientRect();
-  dropdown.style.top = (rect.bottom + 4) + 'px';
-  dropdown.style.left = rect.left + 'px';
-  dropdown.style.width = rect.width + 'px';
-}
-
-function filterVaultFiles() {
-  const input = document.getElementById('popup-target');
-  const dropdown = document.getElementById('vault-files-dropdown');
-  const val = input.value.trim().toLowerCase();
-
-  if (!val) {
-    dropdown.style.display = 'none';
-    return;
-  }
-
-  const matches = vaultFiles.filter(f => f.toLowerCase().includes(val)).slice(0, 12);
-
-  if (matches.length === 0) {
-    dropdown.innerHTML = `<div class="vault-file-option vault-file-create" onclick="selectVaultFile(document.getElementById('popup-target').value.trim())">✨ Create: ${escapeHtml(input.value)}</div>`;
-  } else {
-    dropdown.innerHTML = matches
-      .map(f => `<div class="vault-file-option" onclick="selectVaultFile('${escapeHtml(f)}')">${escapeHtml(f)}</div>`)
-      .join('');
-  }
-  _vaultDropdownIndex = -1;
-  _positionVaultDropdown();
-  dropdown.style.display = 'block';
-}
-
-function selectVaultFile(path) {
-  document.getElementById('popup-target').value = path;
-  document.getElementById('vault-files-dropdown').style.display = 'none';
-}

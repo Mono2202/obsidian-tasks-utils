@@ -213,21 +213,27 @@ class Tasks(ObsidianBase):
 
                         due_match = self.DUE_DATE_PATTERN.search(line)
                         sched_match = self.SCHED_DATE_PATTERN.search(line)
+                        start_match = self.START_DATE_PATTERN.search(line)
                         due_date = due_match.group(1) if due_match else None
                         sched_date = sched_match.group(1) if sched_match else None
+                        start_date = start_match.group(1) if start_match else None
 
                         due_upcoming = due_date and today_str < due_date <= cutoff_str
                         sched_upcoming = sched_date and today_str < sched_date <= cutoff_str
+                        start_upcoming = start_date and today_str < start_date <= cutoff_str
 
-                        if not (due_upcoming or sched_upcoming):
+                        if not (due_upcoming or sched_upcoming or start_upcoming):
                             continue
 
                         rel_path = os.path.relpath(file_path, self.vault_path)
                         top_folder = rel_path.split(os.sep)[0]
                         task_id = str(uuid.uuid4())
-                        happens = due_date if due_upcoming else sched_date
+                        happens = min(d for d in [
+                            due_date if due_upcoming else None,
+                            sched_date if sched_upcoming else None,
+                            start_date if start_upcoming else None,
+                        ] if d)
                         time_match = self.TIME_PATTERN.search(line)
-                        start_match = self.START_DATE_PATTERN.search(line)
                         recur_match = self.RECUR_PATTERN.search(line)
                         has_recur = self.ANY_RECUR_PATTERN.search(line)
                         upcoming_tasks[task_id] = {
@@ -240,7 +246,7 @@ class Tasks(ObsidianBase):
                             "scheduled": sched_date,
                             "happens": happens,
                             "raw_line": line,
-                            "start": start_match.group(1) if start_match else None,
+                            "start": start_date,
                             "time": time_match.group(1) if time_match else None,
                             "recur": recur_match.group(1) if recur_match else None,
                             "completable": not has_recur or bool(recur_match),
@@ -304,6 +310,26 @@ class Tasks(ObsidianBase):
         with open(file_path, "a", encoding="utf-8") as f:
             f.write(new_line if new_line.endswith("\n") else new_line + "\n")
         logger.info(f"Added next task to {file_path}: {new_line.strip()}")
+
+    def delete_task(self, file_path, raw_line):
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        if raw_line not in content:
+            raise ValueError("Task not found in file")
+        content = content.replace(raw_line, "", 1)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        logger.info(f"Deleted task from {file_path}: {raw_line.strip()}")
+
+    def move_task_to_file(self, file_path, raw_line, line_to_write, target_abs_path):
+        self.delete_task(file_path, raw_line)
+        dir_path = os.path.dirname(target_abs_path)
+        if dir_path:
+            os.makedirs(dir_path, exist_ok=True)
+        line = line_to_write if line_to_write.endswith("\n") else line_to_write + "\n"
+        with open(target_abs_path, "a", encoding="utf-8") as f:
+            f.write(line)
+        logger.info(f"Moved task to {target_abs_path}: {raw_line.strip()}")
 
     def update_task(self, file_path, raw_line, new_line):
         with open(file_path, "r", encoding="utf-8") as f:

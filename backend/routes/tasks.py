@@ -161,6 +161,48 @@ def create_tasks_blueprint(obsidian, tasks_store, logger):
             logger.error(f"Failed to undo task completion: {e}")
             return jsonify({"error": str(e)}), 500
 
+    @bp.route('/task/delete', methods=['POST'])
+    def delete_task():
+        data = request.get_json() or {}
+        rel_path = data.get('rel_path')
+        raw_line = data.get('raw_line')
+        if not rel_path or not raw_line:
+            return jsonify({"error": "rel_path and raw_line required"}), 400
+        file_path = os.path.join(obsidian.vault_path, rel_path)
+        try:
+            obsidian.delete_task(file_path, raw_line)
+            return jsonify({"status": "success"})
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            logger.error(f"Failed to delete task: {e}")
+            return jsonify({"error": str(e)}), 500
+
+    @bp.route('/task/move-to-file', methods=['POST'])
+    def move_task_to_file():
+        data = request.get_json() or {}
+        rel_path = data.get('rel_path')
+        raw_line = data.get('raw_line')
+        new_line = data.get('new_line') or raw_line
+        target_path = (data.get('target_path') or '').strip()
+        if not rel_path or not raw_line:
+            return jsonify({"error": "rel_path and raw_line required"}), 400
+        if not target_path:
+            target_abs = obsidian.imploding_tasks_file
+        else:
+            if not target_path.endswith('.md'):
+                target_path += '.md'
+            target_abs = os.path.join(obsidian.vault_path, target_path)
+        file_path = os.path.join(obsidian.vault_path, rel_path)
+        try:
+            obsidian.move_task_to_file(file_path, raw_line, new_line, target_abs)
+            return jsonify({"status": "success"})
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 404
+        except Exception as e:
+            logger.error(f"Failed to move task: {e}")
+            return jsonify({"error": str(e)}), 500
+
     @bp.route('/task/inline-tasks', methods=['GET'])
     def inline_tasks():
         rel_path = request.args.get('rel_path')
