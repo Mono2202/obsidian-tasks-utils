@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/Header/Header';
 import { Task, TabName, TaskEditState, NextActionState, ItemSource, UnifiedItem } from '@/types';
 import { TaskModal } from '@/components/TaskModal/TaskModal';
@@ -50,9 +50,21 @@ export function App() {
     return (localStorage.getItem('activeTab') as TabName) ?? 'today';
   });
   const qc = useQueryClient();
-  const [todayBadge, setTodayBadge] = useState(0);
-  const [inboxBadge, setInboxBadge] = useState(0);
-  const [taskEdit, setTaskEdit] = useState<TaskEditState | null>(null);
+
+  const { data: todayData } = useQuery<{ tasks: Record<string, unknown> }>({
+    queryKey: ['today-tasks'],
+    queryFn: () => fetch('/today-tasks').then(r => r.json()),
+    refetchOnWindowFocus: false,
+  });
+  const { data: inboxData } = useQuery<{ items: unknown[] }>({
+    queryKey: ['inbox-items'],
+    queryFn: () => fetch('/inbox-items').then(r => r.json()),
+    refetchOnWindowFocus: false,
+  });
+
+  const todayBadge = Object.keys(todayData?.tasks ?? {}).length;
+  const inboxBadge = inboxData?.items.length ?? 0;
+  const [taskEdit,     setTaskEdit]     = useState<TaskEditState | null>(null);
   const [nextAction, setNextAction] = useState<NextActionState | null>(null);
 
   // Track which tabs have been visited (for lazy loading)

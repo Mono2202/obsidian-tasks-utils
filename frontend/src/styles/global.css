@@ -376,11 +376,11 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
 .inbox-close-btn:hover { background: var(--input-bg); color: var(--text); }
 .inbox-close-btn:disabled { opacity: 0.35; cursor: default; }
 .inbox-field { display: flex; flex-direction: column; gap: 8px; }
-.inbox-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; padding-top: 15px; }
+.inbox-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; padding-top: 8px; }
 .inbox-label-hint { font-weight: 400; color: var(--text-muted); opacity: 0.7; }
 .inbox-textarea { width: 100%; resize: none; overflow: hidden; min-height: 56px; }
 .inbox-date-input { flex: 1; min-width: 0; }
-.date-field-row { display: flex; align-items: center; gap: 6px; }
+.date-field-row { display: flex; align-items: center; gap: 6px; padding-bottom: 10px;}
 .date-field-row .inbox-date-input { flex: 1; min-width: 0; }
 .date-field-row input[type="time"] { flex: 1; min-width: 0; }
 .date-clear-btn {
@@ -399,7 +399,7 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
 .inbox-fields-row .inbox-field { min-width: 0; }
 .inbox-fields-row.inline { flex-direction: row; gap: 12px; }
 .inbox-fields-row.inline .inbox-field { flex: 1; }
-.inbox-modal-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 26px; padding-bottom: 26px;}
+.inbox-modal-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 16px; }
 
 .inbox-btn-primary, .inbox-btn-secondary, .inbox-btn-danger {
   display: inline-flex;
@@ -558,11 +558,10 @@ button[type="submit"]:disabled { opacity: 0.5; cursor: not-allowed; }
   background: var(--input-bg);
   border-radius: 8px;
   border: 1px solid var(--border);
-  border-left: 3px solid transparent;
   transition: opacity 0.2s;
   margin-bottom: 4px;
 }
-.habit-item.done { border-left-color: var(--success); opacity: 0.7; }
+.habit-item.done { border-left: 3px solid var(--success); opacity: 0.7; }
 .habit-item.completing { opacity: 0.4; pointer-events: none; }
 .habit-body { flex: 1; min-width: 0; cursor: pointer; }
 .habit-name { font-size: 0.95rem; }
@@ -1069,6 +1068,7 @@ header {
 .header-title { display: flex; align-items: center; gap: 12px; }
 .header-title > div { margin-left: 10px; }
 .date { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+.header-version { font-size: 0.65rem; color: var(--text-muted); font-weight: 400; vertical-align: middle; opacity: 0.6; }
 .header-logo { width: 58px; height: 58px; border-radius: 10px; transition: filter 0.3s; cursor: pointer; }
 :root[data-theme="catppuccin"] .header-logo:not(.no-glow) {
   filter: drop-shadow(0 0 5px rgba(203,166,247,0.35)) drop-shadow(0 0 2px rgba(180,190,254,0.4));

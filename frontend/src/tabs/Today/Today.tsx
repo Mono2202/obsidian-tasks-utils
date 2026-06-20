@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Task } from '@/types';
 import { TaskBadges, taskItemClass } from '@/components/TaskBadges/TaskBadges';
@@ -87,7 +87,7 @@ function TaskRow({ id, task, onEdit }: TaskRowProps) {
   );
 }
 
-export function Today({ onEditTask }: Props) {
+export function Today({ onEditTask, tabBadgeRef }: Props) {
   const qc = useQueryClient();
   const { data, isLoading, isError } = useQuery<TodayTasksResponse>({
     queryKey: ['today-tasks'],
@@ -120,16 +120,18 @@ export function Today({ onEditTask }: Props) {
     }
   }
 
-const tasks = data?.tasks ?? {};
+  const tasks = data?.tasks ?? {};
   const sortedIds = sortTaskIds(Object.keys(tasks), tasks);
   const count = sortedIds.length;
+
+  useEffect(() => { tabBadgeRef?.(count); }, [count]);
 
   return (
     <div className="tab-panel active" id="tab-today" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div className="tasks-row">
         <div className="card">
           <div className="tasks-header">
-            <h2>Today {count > 0 && <span style={{ fontWeight: 400, fontSize: '0.8rem', color: 'var(--text-muted)' }}>({count})</span>}</h2>
+            <h2>Today {count > 0 && <span className="inbox-count-badge">{count}</span>}</h2>
           </div>
           {isLoading && <div className="empty-state"><span className="spinner" /> Loading…</div>}
           {isError && <div className="empty-state" style={{ color: 'var(--danger)' }}>Failed to load tasks.</div>}

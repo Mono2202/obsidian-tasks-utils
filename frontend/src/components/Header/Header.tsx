@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '@/context/ThemeContext';
+import { VERSION } from '@/version';
 
 function themeIconSrc(theme: string): string {
   if (theme === 'catppuccin') return '/assets/cat-theme.svg';
@@ -36,7 +37,7 @@ export function Header() {
           onClick={toggleLogoGlow}
         />
         <div>
-          <h1>MonoVault</h1>
+          <h1>MonoVault <span className="header-version">v{VERSION}</span></h1>
           <div className="date">{dateStr}</div>
         </div>
       </div>

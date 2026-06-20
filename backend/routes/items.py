@@ -28,10 +28,7 @@ def create_items_blueprint(inbox, obsidian, logger):
 
         try:
             if source == "inbox":
-                if target_abs:
-                    inbox.move_to_file(raw_line, new_line, target_abs)
-                else:
-                    inbox.update_inbox_item(raw_line, new_line)
+                inbox.move_to_file(raw_line, new_line, target_abs or inbox.imploding_tasks_file)
             else:
                 file_path = os.path.join(obsidian.vault_path, rel_path)
                 if target_abs:

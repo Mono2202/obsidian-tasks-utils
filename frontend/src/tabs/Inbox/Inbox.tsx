@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { InboxItem, UnifiedItem } from '@/types';
 import { TaskBadges } from '@/components/TaskBadges/TaskBadges';
@@ -56,6 +56,8 @@ export function Inbox({ onBadgeCount }: Props) {
 
   const items = data?.items ?? [];
   const inboxRelPath = data?.inbox_rel_path ?? '';
+
+  useEffect(() => { onBadgeCount?.(items.length); }, [items.length]);
 
   function getFilteredSorted(): InboxItem[] {
     const q = filter.toLowerCase();

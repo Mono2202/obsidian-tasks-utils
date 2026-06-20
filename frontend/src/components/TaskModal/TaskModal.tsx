@@ -29,7 +29,8 @@ export function TaskModal({ item, source, onClose, allItems, onNavigate, onActio
   const [start, setStart] = useState(item.start ?? '');
   const [time, setTime] = useState(item.time ?? '');
   const [recur, setRecur] = useState(item.recur ?? '');
-  const [target, setTarget] = useState('');
+  const defaultTarget = source !== 'inbox' ? (item.rel_path ?? '') : '';
+  const [target, setTarget] = useState(defaultTarget);
   const [tags, setTags] = useState<string[]>(item.tags ?? []);
   const descRef = useRef<HTMLTextAreaElement>(null);
 
@@ -59,7 +60,7 @@ export function TaskModal({ item, source, onClose, allItems, onNavigate, onActio
     setStart(item.start ?? '');
     setTime(item.time ?? '');
     setRecur(item.recur ?? '');
-    setTarget('');
+    setTarget(source !== 'inbox' ? (item.rel_path ?? '') : '');
     setTags(item.tags ?? []);
     setTimeout(() => {
       if (descRef.current) {
@@ -95,11 +96,15 @@ export function TaskModal({ item, source, onClose, allItems, onNavigate, onActio
     else onClose();
   }
 
+  function effectiveTarget() {
+    return target === item.rel_path ? '' : target;
+  }
+
   async function onSave() {
     const res = await fetch('/item/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source, raw_line: item.raw_line, new_line: buildLine(), rel_path: item.rel_path, target_path: target }),
+      body: JSON.stringify({ source, raw_line: item.raw_line, new_line: buildLine(), rel_path: item.rel_path, target_path: effectiveTarget() }),
     });
     if (res.ok) afterSuccess();
     else { const d = await res.json(); alert(d.error ?? 'Failed.'); }
@@ -109,7 +114,7 @@ export function TaskModal({ item, source, onClose, allItems, onNavigate, onActio
     const res = await fetch('/item/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ source, raw_line: item.raw_line, new_line: buildLine(), rel_path: item.rel_path, target_path: target }),
+      body: JSON.stringify({ source, raw_line: item.raw_line, new_line: buildLine(), rel_path: item.rel_path, target_path: effectiveTarget() }),
     });
     if (res.ok) afterSuccess(true);
     else { const d = await res.json(); alert(d.error ?? 'Failed.'); }
@@ -254,7 +259,7 @@ export function TaskModal({ item, source, onClose, allItems, onNavigate, onActio
               <label className="inbox-label">
                 Move to page{' '}
                 <span className="inbox-label-hint">
-                  {source === 'inbox' ? '(empty → Imploding Tasks on Done)' : '(empty → save in current file)'}
+                  {source === 'inbox' ? '(empty → Imploding Tasks)' : '(empty → save in current file)'}
                 </span>
               </label>
               <VaultFileInput id="tm-target" value={target} onChange={setTarget} placeholder="Start typing a page name…" />
