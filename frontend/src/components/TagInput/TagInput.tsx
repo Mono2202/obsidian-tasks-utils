@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { useState, useRef, KeyboardEvent } from 'react';
+import * as Popover from '@radix-ui/react-popover';
 import { useVaultTags } from '@/hooks/useVaultTags';
 import { tagBadgeClass } from '@/utils/taskUtils';
 
@@ -15,8 +16,6 @@ export function TagInput({ tags, onChange, inputId }: Props) {
   const [activeIdx, setActiveIdx] = useState(-1);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   function filterTags(val: string) {
     const q = val.replace(/^#+/, '').toLowerCase();
@@ -53,62 +52,54 @@ export function TagInput({ tags, onChange, inputId }: Props) {
     }
   }
 
-  useEffect(() => {
-    if (!dropdownOpen) return;
-    const handler = (e: MouseEvent | TouchEvent) => {
-      if (!inputRef.current?.contains(e.target as Node) && !dropdownRef.current?.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    document.addEventListener('touchstart', handler, { passive: true });
-    return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('touchstart', handler); };
-  }, [dropdownOpen]);
-
-  useEffect(() => {
-    if (!dropdownOpen || !inputRef.current) return;
-    const rect = inputRef.current.getBoundingClientRect();
-    setDropdownStyle({ top: rect.bottom + 4, left: rect.left, width: Math.max(rect.width, 160) });
-  }, [dropdownOpen, inputVal]);
-
   return (
-    <>
-      <div className="inbox-tags-container">
-        {tags.map((tag, i) => (
-          <span key={i} className={`badge ${tagBadgeClass(tag)} inbox-tag-chip`}>
-            {tag}
-            <button className="inbox-tag-remove" type="button" onClick={() => removeTag(i)}>×</button>
-          </span>
-        ))}
-        <input
-          ref={inputRef}
-          id={inputId}
-          type="text"
-          className="inbox-tag-input"
-          placeholder="Add tag and press Enter…"
-          value={inputVal}
-          onChange={e => { setInputVal(e.target.value); filterTags(e.target.value); }}
-          onKeyDown={onKeyDown}
-        />
-      </div>
-      {dropdownOpen && (
-        <div
-          ref={dropdownRef}
+    <Popover.Root open={dropdownOpen} modal={false}>
+      <Popover.Anchor asChild>
+        <div className="inbox-tags-container">
+          {tags.map((tag, i) => (
+            <span key={i} className={`badge ${tagBadgeClass(tag)} inbox-tag-chip`}>
+              {tag}
+              <button className="inbox-tag-remove" type="button" onClick={() => removeTag(i)}>×</button>
+            </span>
+          ))}
+          <input
+            ref={inputRef}
+            id={inputId}
+            type="text"
+            className="inbox-tag-input"
+            placeholder="Add tag…"
+            value={inputVal}
+            onChange={e => { setInputVal(e.target.value); filterTags(e.target.value); }}
+            onBlur={() => setTimeout(() => setDropdownOpen(false), 200)}
+            onKeyDown={onKeyDown}
+          />
+        </div>
+      </Popover.Anchor>
+      <Popover.Portal>
+        <Popover.Content
           className="vault-files-dropdown"
-          style={{ ...dropdownStyle, position: 'fixed', zIndex: 2001 }}
+          side="bottom"
+          align="start"
+          sideOffset={4}
+          style={{ width: 'var(--radix-popover-trigger-width)', zIndex: 2001 }}
+          onOpenAutoFocus={e => e.preventDefault()}
+          onPointerDownOutside={e => e.preventDefault()}
+          onFocusOutside={e => e.preventDefault()}
           onTouchStart={e => e.stopPropagation()}
+          onTouchMove={e => e.stopPropagation()}
+          onWheel={e => e.stopPropagation()}
         >
           {matches.map((t, i) => (
             <div
               key={t}
               className={`vault-file-option${i === activeIdx ? ' active' : ''}`}
-              onMouseDown={() => addTag(t)}
+              onMouseDown={e => { e.preventDefault(); addTag(t); }}
             >
               {t}
             </div>
           ))}
-        </div>
-      )}
-    </>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }

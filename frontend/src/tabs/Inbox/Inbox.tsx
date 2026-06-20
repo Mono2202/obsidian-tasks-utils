@@ -1,10 +1,25 @@
 import { useState, FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { InboxItem } from '@/types';
+import { InboxItem, UnifiedItem } from '@/types';
 import { TaskBadges } from '@/components/TaskBadges/TaskBadges';
 import { playCompletionFeedback } from '@/utils/audioUtils';
 import { obsidianFileHref } from '@/utils/textUtils';
-import { InboxModal } from './InboxModal';
+import { TaskModal } from '@/components/TaskModal/TaskModal';
+
+function inboxToUnified(item: InboxItem): UnifiedItem {
+  return {
+    id: item.id,
+    raw_line: item.raw_line,
+    rel_path: item.rel_path ?? '',
+    description: item.description ?? '',
+    due: item.due,
+    scheduled: item.scheduled,
+    start: item.start,
+    time: item.time,
+    recur: item.recur,
+    tags: item.tags,
+  };
+}
 
 interface InboxResponse {
   items: InboxItem[];
@@ -108,7 +123,6 @@ export function Inbox({ onBadgeCount }: Props) {
   }
 
   function afterAction(nextId: string | null) {
-    qc.invalidateQueries({ queryKey: ['inbox-items'] });
     if (processingMode && nextId) setSelectedId(nextId);
     else setSelectedId(null);
   }
@@ -136,10 +150,16 @@ export function Inbox({ onBadgeCount }: Props) {
           </div>
           <div className="inbox-remind-row">
             <label className="inbox-remind-label">
-              <input type="checkbox" checked={remindCheck} onChange={e => { setRemindCheck(e.target.checked); if (!e.target.checked) setRemindTime(''); }} />
+              <input type="checkbox" className="task-checkbox" checked={remindCheck} onChange={e => { setRemindCheck(e.target.checked); if (!e.target.checked) setRemindTime(''); }} />
               <span>Remind at</span>
             </label>
-            <input type="time" value={remindTime} disabled={!remindCheck} onChange={e => setRemindTime(e.target.value)} />
+            <input
+              type="time"
+              value={remindTime}
+              disabled={!remindCheck}
+              onChange={e => setRemindTime(e.target.value)}
+              style={{ opacity: remindCheck ? 1 : 0.4, transition: 'opacity 0.15s' }}
+            />
           </div>
           <div className={`feedback${quickFeedbackOk ? ' ok' : quickFeedback ? ' err' : ''}`}>{quickFeedback}</div>
         </form>
@@ -202,16 +222,14 @@ export function Inbox({ onBadgeCount }: Props) {
       </div>
 
       {selectedItem && (
-        <InboxModal
-          item={selectedItem}
-          allItems={filtered}
-          inboxRelPath={inboxRelPath}
-          processingMode={processingMode}
-          processingTitle={progressTitle}
-          getNextId={getNextItemId}
+        <TaskModal
+          item={inboxToUnified(selectedItem)}
+          source="inbox"
+          allItems={filtered.map(inboxToUnified)}
           onNavigate={id => setSelectedId(id)}
           onClose={() => setSelectedId(null)}
           onAction={afterAction}
+          processingTitle={progressTitle}
         />
       )}
     </div>

@@ -106,10 +106,24 @@ export interface FinanceSubscription {
 
 export type TabName = 'today' | 'planning' | 'inbox' | 'habits' | 'finance' | 'workout' | 'music' | 'food';
 export type TaskSource = 'today' | 'next' | 'upcoming';
+export type ItemSource = 'inbox' | 'today' | 'next' | 'upcoming';
+
+export interface UnifiedItem {
+  id: string;
+  raw_line: string;
+  rel_path: string;
+  description: string;
+  due: string | null;
+  scheduled: string | null;
+  start: string | null;
+  time: string | null;
+  recur: string | null;
+  tags: string[];
+}
 
 export interface TaskEditState {
-  task: Task;
-  source: TaskSource;
+  item: UnifiedItem;
+  source: ItemSource;
 }
 
 export interface NextActionState {

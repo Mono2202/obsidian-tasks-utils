@@ -194,15 +194,15 @@ function WorkoutList({ exercises, onDelete }: { exercises: Exercise[]; onDelete:
   if (!exercises.length) return <div className="empty-state">No exercises logged yet.</div>;
   return (
     <>
-      {groupExercises(exercises).map(group => (
-        <div key={group.name} className="workout-item">
+      {groupExercises(exercises).map((group, gi) => (
+        <div key={`${group.name}-${gi}`} className="workout-item">
           <span className="workout-item-name">{group.name}</span>
           <div className="workout-set-rows">
-            {mergeIdenticalSets(group.sets).map(sg => {
+            {mergeIdenticalSets(group.sets).map((sg, si) => {
               const totalSets = sg.items.reduce((acc, s) => acc + s.sets, 0);
               const lastIndex = sg.items[sg.items.length - 1].flatIndex;
               return (
-                <div key={sg.key} className="workout-set-row">
+                <div key={`${sg.key}-${si}`} className="workout-set-row">
                   <span className="workout-set-stats"><ExStats sets={totalSets} reps={sg.items[0].reps} weight={sg.items[0].weight} /></span>
                   <button className="workout-delete-btn" onClick={() => onDelete(lastIndex)} title="Remove">×</button>
                 </div>
@@ -229,15 +229,15 @@ function WorkoutHistory({ history, onFill }: {
           <div key={session.date} className="workout-history-session">
             <div className="workout-history-date">{label}</div>
             <div className="workout-history-exercises">
-              {groupExercises(session.exercises).map(group => (
-                <div key={group.name} className="workout-history-ex">
+              {groupExercises(session.exercises).map((group, gi) => (
+                <div key={`${group.name}-${gi}`} className="workout-history-ex">
                   <span className="workout-history-ex-name">{group.name}</span>
                   <div className="workout-set-rows">
-                    {mergeIdenticalSets(group.sets).map(sg => {
+                    {mergeIdenticalSets(group.sets).map((sg, si) => {
                       const totalSets = sg.items.reduce((acc, s) => acc + s.sets, 0);
                       const s = sg.items[0];
                       return (
-                        <div key={sg.key} className="workout-set-row workout-history-row-clickable" onClick={() => onFill(group.name, s.sets, s.reps, s.weight ?? '')}>
+                        <div key={`${sg.key}-${si}`} className="workout-set-row workout-history-row-clickable" onClick={() => onFill(group.name, s.sets, s.reps, s.weight ?? '')}>
                           <span className="workout-set-stats"><ExStats sets={totalSets} reps={s.reps} weight={s.weight} /></span>
                         </div>
                       );

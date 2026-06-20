@@ -39,6 +39,7 @@ export default defineConfig({
       '/vault-files':      { target: FLASK, changeOrigin: true },
       '/vault-tags':       { target: FLASK, changeOrigin: true },
       '/daily-note-uri':   { target: FLASK, changeOrigin: true },
+      '/item':             { target: FLASK, changeOrigin: true },
     },
   },
 });

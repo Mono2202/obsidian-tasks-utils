@@ -16,7 +16,7 @@ export function TaskBadges({ task }: Props) {
   return (
     <>
       {overdue && (
-        <span className="badge overdue">Overdue · {fmtDate(overdueDate)}</span>
+        <span className="badge overdue">!!! {fmtDate(overdueDate)}</span>
       )}
       {task.start && (
         <span className="badge started">🛫 {fmtDate(task.start)}</span>

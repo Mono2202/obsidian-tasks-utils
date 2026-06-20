@@ -100,11 +100,6 @@ export function Today({ onEditTask }: Props) {
   const [todayFeedback, setTodayFeedback] = useState('');
   const [todayFeedbackOk, setTodayFeedbackOk] = useState(false);
 
-  const [inboxTask, setInboxTask] = useState('');
-  const [remindCheck, setRemindCheck] = useState(false);
-  const [remindTime, setRemindTime] = useState('');
-  const [inboxFeedback, setInboxFeedback] = useState('');
-  const [inboxFeedbackOk, setInboxFeedbackOk] = useState(false);
 
   async function submitToday(e: FormEvent) {
     e.preventDefault();
@@ -125,26 +120,7 @@ export function Today({ onEditTask }: Props) {
     }
   }
 
-  async function submitInbox(e: FormEvent) {
-    e.preventDefault();
-    setInboxFeedback('');
-    let task = inboxTask;
-    if (remindCheck && remindTime) task += ` #remind @${remindTime}`;
-    const res = await fetch(`/add-task?task=${encodeURIComponent(task)}`);
-    const d = await res.json();
-    if (res.ok) {
-      setInboxFeedbackOk(true);
-      setInboxFeedback('Added to Inbox.');
-      setInboxTask('');
-      setRemindCheck(false);
-      setRemindTime('');
-    } else {
-      setInboxFeedbackOk(false);
-      setInboxFeedback(d.error ?? 'Error.');
-    }
-  }
-
-  const tasks = data?.tasks ?? {};
+const tasks = data?.tasks ?? {};
   const sortedIds = sortTaskIds(Object.keys(tasks), tasks);
   const count = sortedIds.length;
 
@@ -189,28 +165,6 @@ export function Today({ onEditTask }: Props) {
               </button>
             </div>
             <div className={`feedback${todayFeedbackOk ? ' ok' : todayFeedback ? ' err' : ''}`}>{todayFeedback}</div>
-          </form>
-        </div>
-
-        <div className="card">
-          <h2>Add to Inbox</h2>
-          <form onSubmit={submitInbox}>
-            <div className="form-row">
-              <input type="text" value={inboxTask} onChange={e => setInboxTask(e.target.value)} placeholder="Task description…" required />
-              <button type="submit" title="Add">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              </button>
-            </div>
-            <div className="inbox-remind-row">
-              <label className="inbox-remind-label">
-                <input type="checkbox" checked={remindCheck} onChange={e => { setRemindCheck(e.target.checked); if (!e.target.checked) setRemindTime(''); }} />
-                <span>Remind at</span>
-              </label>
-              <input type="time" value={remindTime} disabled={!remindCheck} onChange={e => setRemindTime(e.target.value)} />
-            </div>
-            <div className={`feedback${inboxFeedbackOk ? ' ok' : inboxFeedback ? ' err' : ''}`}>{inboxFeedback}</div>
           </form>
         </div>
       </div>

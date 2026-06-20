@@ -1,8 +1,25 @@
 import { useState, lazy, Suspense } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/Header/Header';
-import { Task, TabName, TaskEditState, NextActionState, TaskSource } from '@/types';
-import { TaskEditModal } from '@/components/TaskEditModal/TaskEditModal';
+import { Task, TabName, TaskEditState, NextActionState, ItemSource, UnifiedItem } from '@/types';
+import { TaskModal } from '@/components/TaskModal/TaskModal';
 import { NextActionModal } from '@/components/NextActionModal/NextActionModal';
+import { cleanTaskText } from '@/utils/taskUtils';
+
+function taskToUnified(task: Task): UnifiedItem {
+  return {
+    id: task.raw_line,
+    raw_line: task.raw_line,
+    rel_path: task.rel_path,
+    description: cleanTaskText(task.task),
+    due: task.due,
+    scheduled: task.scheduled,
+    start: task.start,
+    time: task.time,
+    recur: task.recur,
+    tags: task.tags ?? [],
+  };
+}
 
 const Today    = lazy(() => import('./tabs/Today/Today').then(m => ({ default: m.Today })));
 const Planning = lazy(() => import('./tabs/Planning/Planning').then(m => ({ default: m.Planning })));
@@ -32,6 +49,7 @@ export function App() {
   const [activeTab, setActiveTab] = useState<TabName>(() => {
     return (localStorage.getItem('activeTab') as TabName) ?? 'today';
   });
+  const qc = useQueryClient();
   const [todayBadge, setTodayBadge] = useState(0);
   const [inboxBadge, setInboxBadge] = useState(0);
   const [taskEdit, setTaskEdit] = useState<TaskEditState | null>(null);
@@ -44,10 +62,12 @@ export function App() {
     setActiveTab(tab);
     setVisited(prev => new Set([...prev, tab]));
     localStorage.setItem('activeTab', tab);
+    if (tab === 'today') qc.invalidateQueries({ queryKey: ['today-tasks'] });
+    if (tab === 'inbox') qc.invalidateQueries({ queryKey: ['inbox-items'] });
   }
 
-  function openTaskEdit(task: Task, source: TaskSource) {
-    setTaskEdit({ task, source });
+  function openTaskEdit(task: Task, source: ItemSource) {
+    setTaskEdit({ item: taskToUnified(task), source });
   }
 
   return (
@@ -141,8 +161,8 @@ export function App() {
       </div>
 
       {taskEdit && (
-        <TaskEditModal
-          task={taskEdit.task}
+        <TaskModal
+          item={taskEdit.item}
           source={taskEdit.source}
           onClose={() => setTaskEdit(null)}
         />

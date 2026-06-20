@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, KeyboardEvent } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
 import { useQueryClient } from '@tanstack/react-query';
-import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { buildTaskLine } from '@/utils/taskUtils';
 import { fmtDate } from '@/utils/dateUtils';
 import { TagInput } from '@/components/TagInput/TagInput';
@@ -24,7 +24,6 @@ interface Props {
 }
 
 export function NextActionModal({ relPath, file, onClose }: Props) {
-  useBodyScrollLock(true);
   const qc = useQueryClient();
 
   const [inlineTasks, setInlineTasks] = useState<InlineTask[]>([]);
@@ -116,14 +115,18 @@ export function NextActionModal({ relPath, file, onClose }: Props) {
   }
 
   return (
-    <div className="inbox-modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }} onKeyDown={onKeyDown}>
-      <div className="inbox-modal-card" onClick={e => e.stopPropagation()}>
+    <Dialog.Root open onOpenChange={open => { if (!open) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="task-modal-overlay" />
+        <Dialog.Content className="task-modal-content" aria-describedby={undefined} onOpenAutoFocus={e => e.preventDefault()}>
+          <div className="task-modal-handle" aria-hidden />
+          <div className="task-modal-scroll" onKeyDown={onKeyDown}>
         <div className="inbox-modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span className="inbox-modal-title">What's next?</span>
             <span className="badge file">{file}</span>
           </div>
-          <button className="inbox-close-btn" onClick={onClose}>✕</button>
+          <Dialog.Close asChild><button className="inbox-close-btn">✕</button></Dialog.Close>
         </div>
 
         {inlineTasks.length > 0 && (
@@ -183,14 +186,14 @@ export function NextActionModal({ relPath, file, onClose }: Props) {
             ].map(({ label, value, set }) => (
               <div key={label} className="inbox-field">
                 <label className="inbox-label">{label}</label>
-                <input type="date" className="inbox-date-input" value={value} onChange={e => set(e.target.value)} />
+                <input type="date" className="inbox-date-input" value={value} onChange={e => set(e.target.value)} onBlur={e => { const el = e.target; setTimeout(() => { if (el.value !== value) set(el.value); }, 0); }} />
               </div>
             ))}
           </div>
-          <div className="inbox-fields-row" style={{ marginTop: 10 }}>
+          <div className="inbox-fields-row inline" style={{ marginTop: 10 }}>
             <div className="inbox-field">
               <label className="inbox-label">@ Time</label>
-              <input type="time" value={time} onChange={e => setTime(e.target.value)} />
+              <input type="time" value={time} onChange={e => setTime(e.target.value)} onBlur={e => { const el = e.target; setTimeout(() => { if (el.value !== time) setTime(el.value); }, 0); }} />
             </div>
             <div className="inbox-field" style={{ flex: 2 }}>
               <label className="inbox-label">🔁 Recurrence</label>
@@ -219,7 +222,9 @@ export function NextActionModal({ relPath, file, onClose }: Props) {
             </svg>
           </button>
         </div>
-      </div>
-    </div>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
