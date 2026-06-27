@@ -92,12 +92,25 @@ export function Planning({ onEditTask, onNextAction }: Props) {
   });
 
   const nextTasks = nextData?.tasks ?? {};
-  const nextIds = Object.keys(nextTasks);
-
   const upcomingTasks = upcomingData?.tasks ?? {};
-  const upcomingIds = Object.keys(upcomingTasks).sort((a, b) =>
-    (upcomingTasks[a].happens ?? '').localeCompare(upcomingTasks[b].happens ?? '')
-  );
+
+  const sortIds = (ids: string[], store: Record<string, Task>) => {
+    const primaryDate = (t: Task) => {
+      const dates = ([t.due, t.scheduled].filter(Boolean) as string[]).sort();
+      return dates[0] ?? '9999-99-99';
+    };
+    return [...ids].sort((a, b) => {
+      const ta = store[a], tb = store[b];
+      const byDate = primaryDate(ta).localeCompare(primaryDate(tb));
+      if (byDate !== 0) return byDate;
+      const byStart = (ta.start ?? '9999-99-99').localeCompare(tb.start ?? '9999-99-99');
+      if (byStart !== 0) return byStart;
+      return ta.task.localeCompare(tb.task);
+    });
+  };
+
+  const nextIds = sortIds(Object.keys(nextTasks), nextTasks);
+  const upcomingIds = sortIds(Object.keys(upcomingTasks), upcomingTasks);
 
   return (
     <div className="tab-panel active" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

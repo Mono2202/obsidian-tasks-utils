@@ -20,14 +20,21 @@ function sortTaskIds(ids: string[], tasks: Record<string, Task>): string[] {
   const today = todayIso();
   const isOverdue = (t: Task) => !!(t.due && t.due < today) || !!(t.scheduled && t.scheduled < today);
   const isStarted = (t: Task) => !isOverdue(t) && !!(t.start && t.start <= today);
-  const overdueDate = (t: Task) => (t.due && t.due < today ? t.due : t.scheduled) ?? '9999';
   const rank = (t: Task) => isOverdue(t) ? 0 : isStarted(t) ? 2 : 1;
+  const primaryDate = (t: Task) => {
+    const dates = ([t.due, t.scheduled].filter(Boolean) as string[]).sort();
+    return dates[0] ?? '9999-99-99';
+  };
 
   return [...ids].sort((a, b) => {
-    const ra = rank(tasks[a]), rb = rank(tasks[b]);
+    const ta = tasks[a], tb = tasks[b];
+    const ra = rank(ta), rb = rank(tb);
     if (ra !== rb) return ra - rb;
-    if (ra === 0) return overdueDate(tasks[a]).localeCompare(overdueDate(tasks[b]));
-    return 0;
+    const byDate = primaryDate(ta).localeCompare(primaryDate(tb));
+    if (byDate !== 0) return byDate;
+    const byStart = (ta.start ?? '9999-99-99').localeCompare(tb.start ?? '9999-99-99');
+    if (byStart !== 0) return byStart;
+    return ta.task.localeCompare(tb.task);
   });
 }
 
